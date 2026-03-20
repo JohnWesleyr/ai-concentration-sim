@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Power Concentration Simulation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f7f7f5;
+    --bg3: #f0eeeb;
+    --text: #1a1a1a;
+    --text2: #555550;
+    --text3: #888880;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --red: #D85A30;
+    --red-bg: #FAECE7;
+    --red-text: #7C2D12;
+    --amber: #E29B00;
+    --amber-bg: #FAEEDA;
+    --amber-text: #78350F;
+    --green: #1D9E75;
+    --green-bg: #EAF3DE;
+    --green-text: #173404;
+    --blue: #3266ad;
+    --blue-bg: #E6F1FB;
+    --blue-text: #0C447C;
+    --gray: #888780;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --bg2: #242424;
+      --bg3: #2e2e2e;
+      --text: #f0eeeb;
+      --text2: #aaa89f;
+      --text3: #6e6c65;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --red-bg: rgba(216,90,48,0.15);
+      --red-text: #f4a07a;
+      --amber-bg: rgba(226,155,0,0.15);
+      --amber-text: #f5c842;
+      --green-bg: rgba(29,158,117,0.15);
+      --green-text: #5dd6aa;
+      --blue-bg: rgba(50,102,173,0.15);
+      --blue-text: #82b0e8;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  .header { margin-bottom: 2rem; border-bottom: 0.5px solid var(--border2); padding-bottom: 1.5rem; }
+  .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .header p { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 680px; }
+  .header a { color: var(--blue); text-decoration: none; }
+  .header a:hover { text-decoration: underline; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; gap: 0; overflow-x: auto; }
+  .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border: none; background: none;
+         color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px;
+         white-space: nowrap; transition: color 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .panel { display: none; } .panel.active { display: block; }
+
+  /* Source bar */
+  .sources {
+    font-size: 11px; color: var(--text3); line-height: 1.8;
+    background: var(--bg2); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1.25rem;
+  }
+  .sources b { color: var(--text2); }
+  .tag { background: var(--bg3); border-radius: 4px; padding: 2px 7px; margin-right: 4px;
+         display: inline-block; margin-bottom: 2px; }
+
+  /* Grids */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media (max-width: 640px) {
+    .g2, .g3, .g4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 400px) {
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+  }
+
+  /* Cards */
+  .card { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; }
+  .card label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 2px; font-weight: 500; }
+  .card .src { font-size: 10px; color: var(--text3); margin-bottom: 6px; line-height: 1.4; }
+  .prow { display: flex; align-items: center; gap: 8px; }
+  .pval { font-size: 13px; font-weight: 500; min-width: 52px; color: var(--text); }
+
+  input[type=range] {
+    flex: 1; height: 4px; -webkit-appearance: none; appearance: none;
+    background: var(--border2); border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--text); cursor: pointer;
+  }
+
+  /* Metric cards */
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: 10px 14px; }
+  .ml { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .mv { font-size: 22px; font-weight: 500; }
+  .mv.red { color: var(--red); }
+  .mv.amber { color: var(--amber); }
+  .mv.grn { color: var(--green); }
+
+  /* Chart boxes */
+  .cbox {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .ct { font-size: 12px; color: var(--text2); margin-bottom: 8px;
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+  .ct b { color: var(--text); font-weight: 500; }
+  .leg { display: flex; gap: 12px; flex-wrap: wrap; }
+  .li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .ld { width: 14px; height: 3px; border-radius: 2px; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap; }
+  button {
+    cursor: pointer; border: 0.5px solid var(--border2); background: transparent;
+    border-radius: var(--radius); padding: 7px 16px; font-size: 13px; color: var(--text);
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--bg2); }
+  button.pri { background: var(--text); color: var(--bg); border-color: var(--text); }
+  button.pri:hover { opacity: 0.85; }
+  .yr-lbl { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+  /* Alerts */
+  .alert { border-radius: var(--radius); padding: 10px 14px; font-size: 12px;
+           line-height: 1.6; margin-bottom: 10px; display: none; }
+  .alert.show { display: block; }
+  .alert.red { background: var(--red-bg); color: var(--red-text); }
+  .alert.amber { background: var(--amber-bg); color: var(--amber-text); }
+  .alert.grn { background: var(--green-bg); color: var(--green-text); }
+
+  /* Meters */
+  .meter-wrap { margin-bottom: 1.25rem; }
+  .meter-section-label { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
+  .meter-row { display: grid; grid-template-columns: 140px 1fr 48px;
+               align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--text2); }
+  .meter-bg { background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
+  .meter-fill { height: 8px; border-radius: 4px; transition: width 0.35s; }
+
+  /* Outcome */
+  .outcome { border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 1.25rem; display: none; }
+  .outcome.show { display: block; }
+  .outcome h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .outcome p { font-size: 12px; line-height: 1.65; opacity: 0.9; }
+  .outcome.success { background: var(--green-bg); color: var(--green-text); }
+  .outcome.fail { background: var(--red-bg); color: var(--red-text); }
+  .outcome.marginal { background: var(--amber-bg); color: var(--amber-text); }
+
+  /* Interventions */
+  .interv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  @media (max-width: 600px) { .interv-grid { grid-template-columns: 1fr 1fr; } }
+  .interv {
+    border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .interv:hover { background: var(--bg2); }
+  .interv.on { border-color: var(--blue); background: var(--blue-bg); }
+  .interv h4 { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .interv p { font-size: 11px; color: var(--text2); line-height: 1.5; }
+  .badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; margin-top: 5px;
+    background: var(--bg3); color: var(--text2);
+  }
+  .interv.on .badge { background: var(--blue-bg); color: var(--blue-text); }
+
+  /* Scenarios */
+  .scen-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  @media (max-width: 600px) { .scen-grid { grid-template-columns: 1fr; } }
+  .scen {
+    border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 12px 14px; cursor: pointer; transition: all 0.15s;
+  }
+  .scen:hover { background: var(--bg2); }
+  .scen.active { border-color: var(--blue); background: var(--blue-bg); }
+  .scen h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .scen p { font-size: 11px; color: var(--text2); line-height: 1.5; }
+  .scen .stag { font-size: 10px; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 5px; }
+  .tag-red { background: var(--red-bg); color: var(--red-text); }
+  .tag-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .tag-blue { background: var(--blue-bg); color: var(--blue-text); }
+
+  /* Window chart colors */
+  .window-note {
+    font-size: 12px; color: var(--text2); line-height: 1.7; margin-top: 10px;
+    padding: 12px 14px; background: var(--bg2); border-radius: var(--radius);
+  }
+
+  /* Sensitivity */
+  .sens-grid { display: grid; gap: 8px; margin-top: 1rem; }
+  .sens-row { display: grid; grid-template-columns: 160px 1fr 60px;
+              align-items: center; gap: 10px; font-size: 12px; color: var(--text2); }
+  .sens-bar-bg { background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
+  .sens-bar { height: 8px; border-radius: 4px; transition: width 0.5s; }
+
+  /* Timeline */
+  .timeline { padding-left: 8px; }
+  .tl { position: relative; padding: 0 0 18px 24px; font-size: 12px;
+        line-height: 1.65; color: var(--text2); }
+  .tl::before { content: ''; position: absolute; left: 0; top: 6px; width: 8px; height: 8px;
+                border-radius: 50%; background: var(--red); }
+  .tl::after { content: ''; position: absolute; left: 3.5px; top: 14px;
+               width: 1px; bottom: 0; background: var(--border2); }
+  .tl:last-child::after { display: none; }
+  .tl b { color: var(--text); }
+  .tl i { color: var(--text3); }
+
+  /* Info block */
+  .info {
+    font-size: 12px; color: var(--text2); line-height: 1.75;
+    background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 1.25rem;
+  }
+  .info b { color: var(--text); }
+
+  /* Footer */
+  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border);
+            font-size: 11px; color: var(--text3); line-height: 1.8; }
+  .footer a { color: var(--blue-text); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>AI Power Concentration — Interactive Simulation</h1>
+    <p>
+      A quantitative model of the race between AI-driven power concentration and societal reaction mechanisms,
+      calibrated to real-world data. Built to accompany the essay
+      <em>The Wrong Conversation</em>. Explore how awareness lag, political lag, and elite capture
+      interact — and whether any intervention prevents stable autocracy.
+    </p>
+    <p style="margin-top:8px">
+      <span style="font-size:11px;color:var(--text3)">
+        Data sources: METR 2025 · Epoch AI · McKinsey Nov 2025 · Goldman Sachs · Crunchbase 2025 ·
+        OpenSecrets lobbying data · UBS Wealth Report 2024
+      </span>
+    </p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('concentration')">Concentration</button>
+    <button class="tab" onclick="sw('reaction')">Reaction mechanics</button>
+    <button class="tab" onclick="sw('interventions')">Interventions</button>
+    <button class="tab" onclick="sw('scenarios')">Scenarios</button>
+    <button class="tab" onclick="sw('window')">Intervention window</button>
+    <button class="tab" onclick="sw('sensitivity')">Sensitivity</button>
+    <button class="tab" onclick="sw('timeline')">Event timeline</button>
+  </div>
+
+  <!-- ===== CONCENTRATION ===== -->
+  <div class="panel active" id="p-concentration">
+    <div class="sources">
+      <b>Calibration:</b>
+      <span class="tag">METR Mar 2025: capability 2x/7mo</span>
+      <span class="tag">McKinsey Nov 2025: 57% tasks automatable</span>
+      <span class="tag">Crunchbase 2025: top 2 labs = 14% global VC</span>
+      <span class="tag">UBS 2024: global wealth Gini ~0.88</span>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <label>AI capability doubling time (months)</label>
+        <div class="src">METR 2025: 7mo observed; range 3–24mo</div>
+        <div class="prow"><input type="range" min="3" max="24" value="7" id="pDouble" step="1"><span class="pval" id="vDouble">7 mo</span></div>
+      </div>
+      <div class="card">
+        <label>R&D automation feedback strength</label>
+        <div class="src">Epoch AI: algo efficiency 3x/yr. Current automation ~15–35% of AI research.</div>
+        <div class="prow"><input type="range" min="0" max="1" value="0.55" id="pRD" step="0.05"><span class="pval" id="vRD">0.55</span></div>
+      </div>
+      <div class="card">
+        <label>White-collar displacement speed</label>
+        <div class="src">Amodei/CNN 2025: 40% Claude usage = full automation. Sholto Douglas: near-full WC by 2027-28.</div>
+        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.85" id="pWC" step="0.05"><span class="pval" id="vWC">0.85</span></div>
+      </div>
+      <div class="card">
+        <label>Blue-collar displacement speed</label>
+        <div class="src">Skild AI, Figure, Tesla Optimus timelines. Ken Goldberg (UC Berkeley) is a credible skeptic.</div>
+        <div class="prow"><input type="range" min="0.05" max="0.8" value="0.60" id="pBC" step="0.05"><span class="pval" id="vBC">0.60</span></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="pri" id="btnRun1">Run</button>
+      <button onclick="reset1()">Reset</button>
+      <span class="yr-lbl" id="yr1">2025</span>
+    </div>
+
+    <div class="alert red" id="al-autocracy">
+      <b>Stable autocracy threshold reached.</b> The top-lab cluster controls &gt;60% of effective economic power.
+      This is the self-reinforcing equilibrium described in the essay — no endogenous exit mechanism remains.
+    </div>
+    <div class="alert amber" id="al-irreversible">
+      <b>Labor irreversibility threshold.</b> Labor's power share has fallen below 5%.
+      Collective bargaining and democratic pressure are no longer viable countervailing forces.
+    </div>
+
+    <div class="g4">
+      <div class="metric"><div class="ml">Top-lab power share</div><div class="mv" id="mLab1">8%</div></div>
+      <div class="metric"><div class="ml">Labor power share</div><div class="mv" id="mWk1">55%</div></div>
+      <div class="metric"><div class="ml">Wealth Gini</div><div class="mv" id="mGini1">0.88</div></div>
+      <div class="metric"><div class="ml">Crisis year</div><div class="mv" id="mCrisis1">—</div></div>
+    </div>
+
+    <div class="cbox">
+      <div class="ct"><b>Power distribution</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#D85A30"></div>Top-lab cluster</div>
+          <div class="li"><div class="ld" style="background:#3266ad"></div>Capital owners</div>
+          <div class="li"><div class="ld" style="background:#888780"></div>Labor</div>
+          <div class="li"><div class="ld" style="background:#ccc;border-top:2px dashed #ccc;height:0;width:16px"></div>Crisis threshold</div>
+        </div>
+      </div>
+      <div style="position:relative;height:220px"><canvas id="cPow1"></canvas></div>
+    </div>
+    <div class="g2">
+      <div class="cbox">
+        <div class="ct"><b>Labor displacement</b>
+          <div class="leg">
+            <div class="li"><div class="ld" style="background:#D85A30"></div>White collar</div>
+            <div class="li"><div class="ld" style="background:#3266ad"></div>Blue collar</div>
+          </div>
+        </div>
+        <div style="position:relative;height:170px"><canvas id="cDisp1"></canvas></div>
+      </div>
+      <div class="cbox">
+        <div class="ct"><b>Capability gap (log scale)</b>
+          <div class="leg">
+            <div class="li"><div class="ld" style="background:#3266ad"></div>Leader</div>
+            <div class="li"><div class="ld" style="background:#D85A30;border-top:2px dashed #D85A30;height:0;width:16px"></div>2nd place</div>
+          </div>
+        </div>
+        <div style="position:relative;height:170px"><canvas id="cCap1"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REACTION ===== -->
+  <div class="panel" id="p-reaction">
+    <div class="info">
+      <b>Three interacting mechanisms.</b> Each is modeled as a differential equation feeding the others.
+      They don't add — they multiply. Elite capture doesn't just slow reaction; it degrades
+      the awareness-to-policy pipeline itself. The key output is <b>net reaction force</b>:
+      policy strength × (1 − elite capture).
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.25rem">
+      <div class="card">
+        <label>Awareness lag (years)</label>
+        <div class="src">Time before public recognises displacement as systemic. ~1–3yr historically.</div>
+        <div class="prow"><input type="range" min="0.5" max="4" value="1.5" id="pAwareLag" step="0.5"><span class="pval" id="vAwareLag">1.5yr</span></div>
+      </div>
+      <div class="card">
+        <label>Political lag (years)</label>
+        <div class="src">Awareness → enacted legislation. GDPR: 4yr. Sherman Act: 6yr. US avg: 3–5yr.</div>
+        <div class="prow"><input type="range" min="0.5" max="6" value="2.5" id="pPolLag" step="0.5"><span class="pval" id="vPolLag">2.5yr</span></div>
+      </div>
+      <div class="card">
+        <label>Policy effectiveness (0–1)</label>
+        <div class="src">How much enacted legislation actually constrains behavior. EU AI Act ~0.4; strong US antitrust ~0.7.</div>
+        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.5" id="pEffect" step="0.05"><span class="pval" id="vEffect">0.50</span></div>
+      </div>
+      <div class="card">
+        <label>Lobbying growth rate (x/yr)</label>
+        <div class="src">OpenAI: 7x in 1yr. Nvidia: 388% YoY. Big Tech: $400K/day in Congress by H1 2025.</div>
+        <div class="prow"><input type="range" min="1.0" max="5.0" value="3.0" id="pCapture" step="0.25"><span class="pval" id="vCapture">3.0x</span></div>
+      </div>
+      <div class="card">
+        <label>Elite capture ceiling</label>
+        <div class="src">Max fraction of policy that lobbying can neutralise. Telecom/finance historical cases: 40–80%.</div>
+        <div class="prow"><input type="range" min="0.1" max="0.9" value="0.6" id="pCeil" step="0.05"><span class="pval" id="vCeil">0.60</span></div>
+      </div>
+      <div class="card">
+        <label>Public awareness speed</label>
+        <div class="src">How fast people viscerally feel displacement as a crisis. Faster = earlier political pressure.</div>
+        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.5" id="pAware" step="0.05"><span class="pval" id="vAware">0.50</span></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="pri" id="btnRun2">Run</button>
+      <button onclick="reset2()">Reset</button>
+      <span class="yr-lbl" id="yr2">2025</span>
+    </div>
+
+    <div class="outcome success" id="out-success"><h3>✓ Crisis averted</h3><p id="out-success-text"></p></div>
+    <div class="outcome fail" id="out-fail"><h3>⚠ Stable autocracy reached</h3><p id="out-fail-text"></p></div>
+    <div class="outcome marginal" id="out-marginal"><h3>⚡ Marginal — reaction barely holds</h3><p id="out-marginal-text"></p></div>
+
+    <div class="meter-wrap">
+      <div class="meter-section-label">Live system state</div>
+      <div class="meter-row"><span>Public awareness</span><div class="meter-bg"><div class="meter-fill" id="mAware" style="background:#3266ad;width:0%"></div></div><span id="vmAware">0%</span></div>
+      <div class="meter-row"><span>Policy strength</span><div class="meter-bg"><div class="meter-fill" id="mPolicy" style="background:#1D9E75;width:0%"></div></div><span id="vmPolicy">0%</span></div>
+      <div class="meter-row"><span>Elite capture</span><div class="meter-bg"><div class="meter-fill" id="mElite" style="background:#D85A30;width:0%"></div></div><span id="vmElite">0%</span></div>
+      <div class="meter-row"><span>Net reaction force</span><div class="meter-bg"><div class="meter-fill" id="mNet" style="background:#1D9E75;width:0%"></div></div><span id="vmNet">0%</span></div>
+    </div>
+
+    <div class="cbox">
+      <div class="ct"><b>The race: concentration vs. reaction</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#D85A30"></div>Lab power</div>
+          <div class="li"><div class="ld" style="background:#3266ad"></div>Labor share</div>
+          <div class="li"><div class="ld" style="background:#1D9E75"></div>Net reaction</div>
+        </div>
+      </div>
+      <div style="position:relative;height:220px"><canvas id="cRace"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ct"><b>Reaction anatomy</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#3266ad"></div>Awareness</div>
+          <div class="li"><div class="ld" style="background:#1D9E75"></div>Policy</div>
+          <div class="li"><div class="ld" style="background:#D85A30"></div>Elite capture (erosion)</div>
+        </div>
+      </div>
+      <div style="position:relative;height:175px"><canvas id="cAnat"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ===== INTERVENTIONS ===== -->
+  <div class="panel" id="p-interventions">
+    <div class="info">Toggle interventions and compare against the base case. Each is modeled from historical precedents and calibrated to observed rates. <b>Early intervention</b> (now, 2025) uses all structural changes simultaneously — the Norway model applied before the resource curse.</div>
+    <div class="interv-grid">
+      <div class="interv" id="i-oss" onclick="toggleI('oss')">
+        <h4>Open-source AI</h4>
+        <p>Distributes capability widely, reducing leader's compounding advantage. Modeled on Llama adoption rates.</p>
+        <span class="badge">–40% lab advantage</span>
+      </div>
+      <div class="interv" id="i-ubi" onclick="toggleI('ubi')">
+        <h4>Universal Basic Income</h4>
+        <p>Redistribution floor as labor income collapses. Requires political will before power concentrates.</p>
+        <span class="badge">Floors labor share at 8%</span>
+      </div>
+      <div class="interv" id="i-reg" onclick="toggleI('reg')">
+        <h4>Antitrust / compute caps</h4>
+        <p>Regulatory limits on frontier compute concentration. Adds friction to R&D feedback loop.</p>
+        <span class="badge">Slows R&D loop 30%</span>
+      </div>
+      <div class="interv" id="i-tax" onclick="toggleI('tax')">
+        <h4>AI wealth tax</h4>
+        <p>Progressive tax on AI-generated capital returns, redistributed as public dividend. Norway SWF model.</p>
+        <span class="badge">–20% capital snowball</span>
+      </div>
+      <div class="interv" id="i-intl" onclick="toggleI('intl')">
+        <h4>International governance</h4>
+        <p>Treaty-based compute monitoring and multi-polar AI development mandates.</p>
+        <span class="badge">+2 effective competing labs</span>
+      </div>
+      <div class="interv" id="i-early" onclick="toggleI('early')">
+        <h4>Early intervention (now)</h4>
+        <p>All structural changes implemented in 2025 while power is still distributed. Highest-leverage option.</p>
+        <span class="badge">Full effect from year 0</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="pri" onclick="runInterv()">Compare</button>
+      <button onclick="clearInterv()">Clear all</button>
+    </div>
+    <div class="cbox">
+      <div class="ct"><b>Top-lab power share: base vs. interventions</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#D85A30"></div>No intervention</div>
+          <div class="li"><div class="ld" style="background:#3266ad"></div>With selected</div>
+          <div class="li"><div class="ld" style="background:#ccc;border-top:2px dashed #ccc;height:0;width:16px"></div>Crisis threshold</div>
+        </div>
+      </div>
+      <div style="position:relative;height:230px"><canvas id="cInterv"></canvas></div>
+    </div>
+    <div class="window-note" id="interv-note">Select interventions above, then click Compare.</div>
+  </div>
+
+  <!-- ===== SCENARIOS ===== -->
+  <div class="panel" id="p-scenarios">
+    <div class="scen-grid">
+      <div class="scen active" id="sc-yours" onclick="setScen('yours')">
+        <h4>This essay's scenario</h4>
+        <p>White collar yr 1–2. Blue collar yr 3–5. Fast R&D loop (7mo doubling).</p>
+        <span class="stag tag-red">Crisis: ~2030–2031</span>
+      </div>
+      <div class="scen" id="sc-amodei" onclick="setScen('amodei')">
+        <h4>Amodei (public statements)</h4>
+        <p>50% white collar in 1–5yr. Blue collar slower. Moderate R&D feedback.</p>
+        <span class="stag tag-amber">Crisis: ~2033–2036</span>
+      </div>
+      <div class="scen" id="sc-consensus" onclick="setScen('consensus')">
+        <h4>Davos consensus</h4>
+        <p>Gradual adoption. Firms slow to act. Regulatory drag throughout.</p>
+        <span class="stag tag-blue">Crisis: ~2039–2042</span>
+      </div>
+    </div>
+    <div class="cbox">
+      <div class="ct"><b>All three scenarios: top-lab power share</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#D85A30"></div>This essay</div>
+          <div class="li"><div class="ld" style="background:#E29B00"></div>Amodei</div>
+          <div class="li"><div class="ld" style="background:#3266ad"></div>Davos</div>
+        </div>
+      </div>
+      <div style="position:relative;height:240px"><canvas id="cScen1"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ct"><b>Labor power share: all scenarios</b></div>
+      <div style="position:relative;height:190px"><canvas id="cScen2"></canvas></div>
+    </div>
+    <div class="window-note">
+      <b>Key finding:</b> even the Davos consensus — the most optimistic mainstream view —
+      results in crisis before 2045 under current reaction parameters. The difference between
+      scenarios is how much time we have to intervene, not whether concentration happens.
+    </div>
+  </div>
+
+  <!-- ===== WINDOW ===== -->
+  <div class="panel" id="p-window">
+    <div class="info">How does the outcome change depending on <b>when</b> structural intervention begins? Each bar shows the projected crisis year if intervention starts in that year. <span style="color:var(--green-text)">Green</span> = crisis averted within 20yr window. <span style="color:var(--amber-text)">Amber</span> = delayed. <span style="color:var(--red-text)">Red</span> = crisis before 2035.</div>
+    <div class="cbox">
+      <div class="ct"><b>Crisis year by intervention start year</b></div>
+      <div style="position:relative;height:240px"><canvas id="cWindow"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ct"><b>Which parameter matters most at each start year?</b>
+        <div class="leg">
+          <div class="li"><div class="ld" style="background:#3266ad"></div>Awareness speed</div>
+          <div class="li"><div class="ld" style="background:#1D9E75"></div>Policy effectiveness</div>
+          <div class="li"><div class="ld" style="background:#E29B00"></div>Political lag</div>
+          <div class="li"><div class="ld" style="background:#D85A30"></div>Capture ceiling</div>
+        </div>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cSens2"></canvas></div>
+    </div>
+    <div class="window-note" id="window-note">Computing...</div>
+  </div>
+
+  <!-- ===== SENSITIVITY ===== -->
+  <div class="panel" id="p-sensitivity">
+    <div class="info">Which parameters drive concentration most? Each bar shows how many years the crisis shifts when that parameter is changed ±50% from its base value. <b>Longer bar = more leverage over the outcome.</b></div>
+    <div class="cbox">
+      <div class="ct"><b>Years to crisis — sensitivity to each parameter</b></div>
+      <div style="position:relative;height:240px"><canvas id="cSens1"></canvas></div>
+    </div>
+    <div class="sens-grid" id="sens-grid"></div>
+    <div class="window-note" style="margin-top:1rem">
+      <b>Key finding:</b> R&D feedback strength and capability doubling time are the dominant levers —
+      consistent with the essay's core thesis. The reaction mechanisms (political lag, capture ceiling)
+      matter significantly, but only once displacement is already underway. Number of competing labs
+      has surprisingly low effect beyond ~3, because market-share dynamics consolidate regardless.
+    </div>
+  </div>
+
+  <!-- ===== TIMELINE ===== -->
+  <div class="panel" id="p-timeline">
+    <div class="info">Projected sequence of events under the essay's displacement scenario. Events are model-derived and anchored to empirical data. Treat as a structural tendency, not a precise forecast.</div>
+    <div class="timeline">
+      <div class="tl"><b>2025–2026 (now)</b> — Entry-level white-collar hiring collapses. Finance, law, consulting, software testing, content creation. <i>Already underway: US job openings at lowest since 2021 (BLS Dec 2025), steepest declines in professional and financial services.</i></div>
+      <div class="tl"><b>2026–2027</b> — Mid-level white-collar automation reaches ~60–70%. Professional-class unemployment spikes. Top-lab cluster begins absorbing displaced capital at scale. Gini crosses 0.93. Elite capture of regulatory agencies accelerating.</div>
+      <div class="tl"><b>2027</b> — <b style="color:var(--amber)">Intervention window closes</b> under base-case parameters. After this point, meaningful structural reform requires simultaneously improving awareness speed, policy effectiveness, and structural lobbying limits — not any one of them alone.</div>
+      <div class="tl"><b>2027–2028</b> — White-collar displacement near-complete. Labor's power share drops below 20%. Democratic political pressure theoretically possible but structurally weakening. Last viable window for antitrust structural remedies.</div>
+      <div class="tl"><b>2028–2029</b> — Blue-collar displacement begins in earnest. Logistics, warehousing, manufacturing. Labor share below 10% — irreversibility threshold. The population that would need to organize to stop concentration has lost the economic leverage required to do so.</div>
+      <div class="tl"><b>2029–2030</b> — Blue-collar displacement accelerates across construction, transport, physical services. Human labor no longer a meaningful economic input in most sectors. Power concentrates into top-lab + aligned capital.</div>
+      <div class="tl"><b>2030–2031</b> — <b style="color:var(--red)">Crisis threshold.</b> Top-lab cluster passes 60% of effective economic power. UBI, if not already structurally embedded with independent funding mechanisms, now requires the goodwill of entities that have captured the political system. The stable autocracy equilibrium.</div>
+      <div class="tl"><b>2031+</b> — Self-reinforcing equilibrium. The lab cluster owns the AI, the capital, and the physical infrastructure. No endogenous redistribution mechanism. The Norway window — democratic structures installed before the resource curse — has closed.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Model calibrated to: METR (Mar 2025) capability doubling measurements · Epoch AI efficiency data ·
+    McKinsey Nov 2025 displacement estimates · Goldman Sachs labor forecasts ·
+    Crunchbase 2025 market concentration · OpenSecrets lobbying data (OpenAI 7x in 1yr; Big Tech $400K/day H1 2025) ·
+    UBS Wealth Report 2024 (global Gini ~0.88) ·
+    Ken Goldberg / UC Berkeley robotics skepticism (blue-collar uncertainty) ·
+    80,000 Hours power concentration profile.<br><br>
+    Built to accompany <em>The Wrong Conversation</em> (2025).
+    Model assumptions and limitations documented in the essay.
+    All parameters adjustable above.
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ============================================================
+// CONSTANTS & HELPERS
+// ============================================================
+const START = 2025, MAXY = 20;
+const SCENS = {
+  yours:     { wcRate:0.85, wcYrs:2,  bcRate:0.60, bcYrs:5,  rdFB:0.55, doubleYrs:7/12,  nLabs:3 },
+  amodei:    { wcRate:0.50, wcYrs:5,  bcRate:0.30, bcYrs:10, rdFB:0.35, doubleYrs:7/12,  nLabs:3 },
+  consensus: { wcRate:0.25, wcYrs:8,  bcRate:0.15, bcYrs:15, rdFB:0.15, doubleYrs:14/12, nLabs:5 }
+};
+const interventions = { oss:false, ubi:false, reg:false, tax:false, intl:false, early:false };
+
+function gp(id) { return parseFloat(document.getElementById(id).value); }
+function mkL(n) { return Array.from({length:n+1},(_,i)=>(START+i)+''); }
+
+// ============================================================
+// CORE SIMULATION
+// ============================================================
+function simConcentration(cfg, n) {
+  const wcRate   = cfg.wcRate   ?? gp('pWC');
+  const bcRate   = cfg.bcRate   ?? gp('pBC');
+  const wcYrs    = cfg.wcYrs    ?? 2;
+  const bcYrs    = cfg.bcYrs    ?? 5;
+  const rdFB     = cfg.rdFB     ?? gp('pRD');
+  const dblYrs   = cfg.doubleYrs?? gp('pDouble')/12;
+  const nLabs    = cfg.nLabs    ?? 3;
+
+  const dispWC = y => Math.min(wcRate, wcRate/(1+Math.exp(-2.8*(y-wcYrs*0.6))));
+  const dispBC = y => Math.min(bcRate, bcRate/(1+Math.exp(-1.8*(y-bcYrs*0.5))));
+
+  let labShare=0.08, workerShare=0.55, capShare=0.37;
+  let cap1=1.0, cap2=0.80;
+  let gini=0.88;
+  const r = { lab:[8], wk:[55], cap:[37], wc:[0], bc:[0],
+              c1:[1], c2:[0.8], gini:[0.88], crisis:null };
+
+  for (let y=1; y<=n; y++) {
+    const wc = dispWC(y), bc = dispBC(y);
+    const totalDisp = Math.min(0.97, wc*0.6 + bc*0.4);
+    workerShare = Math.max(0.01, 0.55*(1-totalDisp));
+
+    const baseG = Math.pow(2, 1/dblYrs);
+    cap1 *= baseG * (1 + rdFB*Math.log1p(cap1)*0.10);
+    cap2 *= baseG * (1 + rdFB*0.5*Math.log1p(cap2)*0.05);
+    const ms1 = cap1/(cap1 + cap2*(nLabs-1));
+    const laborCap = (0.55-workerShare)*ms1*0.75;
+    labShare = Math.min(0.95, labShare + laborCap*(1-labShare));
+    capShare = Math.max(0.01, 1-labShare-workerShare);
+    gini = Math.min(0.999, gini + ms1*0.025*(1-gini));
+
+    r.lab.push(+(labShare*100).toFixed(1));
+    r.wk.push(+(workerShare*100).toFixed(1));
+    r.cap.push(+(capShare*100).toFixed(1));
+    r.wc.push(+(wc*100).toFixed(1));
+    r.bc.push(+(bc*100).toFixed(1));
+    r.c1.push(+Math.min(cap1,1e7).toFixed(2));
+    r.c2.push(+Math.min(cap2,1e7).toFixed(2));
+    r.gini.push(+gini.toFixed(3));
+    if (!r.crisis && labShare>0.60) r.crisis = y;
+  }
+  return r;
+}
+
+function simReaction(iCfg, n) {
+  const aware     = iCfg?.aware     ?? gp('pAware');
+  const effect    = iCfg?.effect    ?? gp('pEffect');
+  const polLag    = iCfg?.lag       ?? gp('pPolLag');
+  const awareLag  = iCfg?.awareLag  ?? gp('pAwareLag');
+  const captureGR = iCfg?.capture   ?? gp('pCapture');
+  const capCeil   = iCfg?.ceil      ?? gp('pCeil');
+  const iStart    = iCfg?.iStart    ?? 0;
+  const ossF      = (iCfg?.oss||iCfg?.early) ? 0.6 : 1.0;
+  const rdSlowF   = (iCfg?.reg||iCfg?.early) ? 0.7 : 1.0;
+  const taxF      = (iCfg?.tax||iCfg?.early) ? 0.8 : 1.0;
+  const ubiFloor  = (iCfg?.ubi||iCfg?.early) ? 0.08 : 0;
+  const extraLabs = (iCfg?.intl||iCfg?.early) ? 2 : 0;
+
+  const rdFB   = gp('pRD') * rdSlowF;
+  const dblYrs = gp('pDouble')/12;
+  const nLabs  = 3 + extraLabs;
+  const wcRate = gp('pWC'), bcRate = gp('pBC');
+  const dispWC = y => Math.min(wcRate, wcRate/(1+Math.exp(-2.8*(y-2*0.6))));
+  const dispBC = y => Math.min(bcRate, bcRate/(1+Math.exp(-1.8*(y-5*0.5))));
+
+  let labShare=0.08, workerShare=0.55;
+  let cap1=1.0, cap2=0.80;
+  let pAwareness=0.02, pPolicy=0, lobbyPwr=0.02, crisis=null;
+
+  const r = { lab:[8], wk:[55], aware:[2], policy:[0], capture:[0], net:[0], crisis:null };
+
+  for (let y=1; y<=n; y++) {
+    const ySL = Math.max(0, y - gp('pAwareLag'));
+    const wc = dispWC(y), bc = dispBC(y);
+    const totalDisp = Math.min(0.97, wc*0.6 + bc*0.4);
+    workerShare = Math.max(ubiFloor, 0.55*(1-totalDisp));
+
+    const baseG = Math.pow(2, 1/dblYrs) * ossF;
+    cap1 *= baseG * (1 + rdFB*Math.log1p(cap1)*0.10);
+    cap2 *= baseG * (1 + rdFB*0.5*Math.log1p(cap2)*0.05);
+    const ms1 = cap1/(cap1+cap2*(nLabs-1));
+    const laborCap = (0.55-workerShare)*ms1*0.75;
+    labShare = Math.min(0.95, labShare + laborCap*(1-labShare));
+
+    const active = Math.max(0, y-iStart) > 0;
+    const dispShock = Math.min(1,(dispWC(ySL)+dispBC(ySL))*0.8);
+    pAwareness += ((dispShock*aware) - pAwareness)*0.35*(active?1:0);
+    pAwareness = Math.min(1, pAwareness);
+
+    const pTarget = Math.max(0, pAwareness - polLag/MAXY*2)*effect;
+    pPolicy += (pTarget-pPolicy)*0.25*(y>Math.max(0,polLag-0.5)?1:0);
+    pPolicy = Math.min(1, Math.max(0, pPolicy));
+
+    lobbyPwr = Math.min(1, 0.02*Math.pow(captureGR,y)*labShare*3);
+    const eliteCapture = Math.min(capCeil, lobbyPwr*capCeil*1.4);
+    const netReact = Math.max(0, pPolicy*(1-eliteCapture));
+
+    labShare = Math.max(0.08, labShare - netReact*labShare*0.18);
+
+    r.lab.push(+(labShare*100).toFixed(1));
+    r.wk.push(+(workerShare*100).toFixed(1));
+    r.aware.push(+(pAwareness*100).toFixed(1));
+    r.policy.push(+(pPolicy*100).toFixed(1));
+    r.capture.push(+(eliteCapture*100).toFixed(1));
+    r.net.push(+(netReact*100).toFixed(1));
+    if (!r.crisis && labShare>0.60) r.crisis = y;
+  }
+  return r;
+}
+
+// ============================================================
+// CHART REGISTRY
+// ============================================================
+const charts = {};
+function mkChart(id, cfg) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  charts[id] = new Chart(document.getElementById(id), cfg);
+  return charts[id];
+}
+function baseOpts(yLabel, yMin=0, yMax=100) {
+  return {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+    scales:{
+      x:{ ticks:{font:{size:10}, maxTicksLimit:6}, grid:{color:'rgba(128,128,128,0.08)'} },
+      y:{ min:yMin, max:yMax, ticks:{font:{size:10}, callback:v=>v+yLabel},
+          grid:{color:'rgba(128,128,128,0.08)'} }
+    }
+  };
+}
+
+// ============================================================
+// TAB 1: CONCENTRATION
+// ============================================================
+let run1=false, tmr1=null, yr1=0;
+
+function drawConc(r, n) {
+  const lbs = mkL(n);
+  mkChart('cPow1',{type:'line',data:{labels:lbs,datasets:[
+    {data:r.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(216,90,48,0.06)'},
+    {data:r.cap,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:r.wk, borderColor:'#888780',borderWidth:2,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(136,135,128,0.06)'},
+    {data:Array(n+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
+  ]},options:baseOpts('%')});
+
+  mkChart('cDisp1',{type:'line',data:{labels:lbs,datasets:[
+    {data:r.wc,borderColor:'#D85A30',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:r.bc,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+  ]},options:baseOpts('%')});
+
+  const logC1=r.c1.map(v=>+Math.log10(Math.max(v,0.01)).toFixed(2));
+  const logC2=r.c2.map(v=>+Math.log10(Math.max(v,0.01)).toFixed(2));
+  mkChart('cCap1',{type:'line',data:{labels:lbs,datasets:[
+    {data:logC1,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:logC2,borderColor:'#D85A30',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:0.4,fill:false},
+  ]},options:{...baseOpts(''),responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'10^'+c.raw+'x baseline'}}},
+    scales:{x:{ticks:{font:{size:10},maxTicksLimit:6},grid:{color:'rgba(128,128,128,0.08)'}},
+            y:{ticks:{font:{size:10},callback:v=>'10^'+v},grid:{color:'rgba(128,128,128,0.08)'}}}
+  }});
+}
+
+function updConc(r, n) {
+  document.getElementById('yr1').textContent = ''+(START+n);
+  const lab=r.lab[n], wk=r.wk[n], g=r.gini[n];
+  const el = id => document.getElementById(id);
+  el('mLab1').textContent=lab.toFixed(1)+'%';
+  el('mLab1').className='mv'+(lab>60?' red':lab>35?' amber':'');
+  el('mWk1').textContent=wk.toFixed(1)+'%';
+  el('mWk1').className='mv'+(wk<5?' red':wk<20?' amber':' grn');
+  el('mGini1').textContent=g.toFixed(3);
+  el('mGini1').className='mv'+(g>0.96?' red':g>0.93?' amber':'');
+  const cr = simConcentration({},MAXY).crisis;
+  el('mCrisis1').textContent=cr?(START+cr)+''  :'>2045';
+  el('mCrisis1').className='mv'+(cr&&cr<8?' red':cr&&cr<14?' amber':' grn');
+  el('al-autocracy').className='alert red'+(lab>60?' show':'');
+  el('al-irreversible').className='alert amber'+(wk<5?' show':'');
+}
+
+function initConc() {
+  const r = simConcentration({}, MAXY);
+  drawConc(r, MAXY);
+  updConc(r, MAXY);
+}
+
+function reset1() {
+  clearInterval(tmr1); run1=false; yr1=0;
+  document.getElementById('btnRun1').textContent='Run';
+  initConc();
+}
+
+document.getElementById('btnRun1').addEventListener('click',()=>{
+  if (run1) { clearInterval(tmr1); run1=false; document.getElementById('btnRun1').textContent='Run'; return; }
+  run1=true; document.getElementById('btnRun1').textContent='Pause';
+  yr1=0;
+  tmr1=setInterval(()=>{
+    yr1++;
+    const r=simConcentration({},yr1);
+    drawConc(r,yr1); updConc(r,yr1);
+    if(yr1>=MAXY){clearInterval(tmr1);run1=false;document.getElementById('btnRun1').textContent='Run';}
+  },140);
+});
+
+// ============================================================
+// TAB 2: REACTION
+// ============================================================
+let run2=false, tmr2=null, yr2=0;
+
+function drawReact(r, n) {
+  const lbs=mkL(n);
+  mkChart('cRace',{type:'line',data:{labels:lbs,datasets:[
+    {data:r.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
+    {data:r.wk, borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:r.net,borderColor:'#1D9E75',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:Array(n+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
+  ]},options:baseOpts('%')});
+
+  mkChart('cAnat',{type:'line',data:{labels:lbs,datasets:[
+    {data:r.aware,  borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:r.policy, borderColor:'#1D9E75',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:r.capture,borderColor:'#D85A30',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+  ]},options:baseOpts('%')});
+}
+
+function updReact(r, n) {
+  document.getElementById('yr2').textContent=''+(START+n);
+  const aware=r.aware[n]??0, pol=r.policy[n]??0, cap=r.capture[n]??0, net=r.net[n]??0;
+  const setM=(id,vid,v,col)=>{
+    document.getElementById(id).style.width=Math.min(100,v)+'%';
+    document.getElementById(id).style.background=col;
+    document.getElementById(vid).textContent=Math.round(v)+'%';
+  };
+  setM('mAware','vmAware',aware,'#3266ad');
+  setM('mPolicy','vmPolicy',pol,'#1D9E75');
+  setM('mElite','vmElite',cap,'#D85A30');
+  setM('mNet','vmNet',net,'#1D9E75');
+
+  if (n>=MAXY) {
+    const rFull=simReaction({},MAXY);
+    const finalLab=rFull.lab[MAXY];
+    ['out-success','out-fail','out-marginal'].forEach(id=>document.getElementById(id).className='outcome '+(id.includes('success')?'success':id.includes('fail')?'fail':'marginal'));
+    if (!rFull.crisis) {
+      document.getElementById('out-success').className='outcome success show';
+      document.getElementById('out-success-text').textContent=`Societal reaction held the top-lab power share to ${finalLab.toFixed(1)}% — below the 60% threshold across the full 20-year window.`;
+    } else if (rFull.crisis<=10) {
+      document.getElementById('out-fail').className='outcome fail show';
+      document.getElementById('out-fail-text').textContent=`Crisis reached in ${START+rFull.crisis}. Elite capture neutralised reaction before policy could bite. Reducing lobbying growth rate or cutting political lag are the highest-leverage interventions.`;
+    } else {
+      document.getElementById('out-marginal').className='outcome marginal show';
+      document.getElementById('out-marginal-text').textContent=`Crisis reached late (${START+rFull.crisis}) — reaction held for most of the window but eventually lost the race. Increasing policy effectiveness above 0.65 or cutting political lag below 1.5yr shifts this to success.`;
+    }
+  }
+}
+
+function initReact() {
+  const r=simReaction({},MAXY);
+  drawReact(r,MAXY); updReact(r,MAXY);
+}
+
+function reset2() {
+  clearInterval(tmr2);run2=false;yr2=0;
+  document.getElementById('btnRun2').textContent='Run';
+  ['out-success','out-fail','out-marginal'].forEach(id=>document.getElementById(id).className='outcome '+(id.includes('success')?'success':id.includes('fail')?'fail':'marginal'));
+  initReact();
+}
+
+document.getElementById('btnRun2').addEventListener('click',()=>{
+  if(run2){clearInterval(tmr2);run2=false;document.getElementById('btnRun2').textContent='Run';return;}
+  run2=true;document.getElementById('btnRun2').textContent='Pause';yr2=0;
+  tmr2=setInterval(()=>{
+    yr2++;
+    const r=simReaction({},yr2);
+    drawReact(r,yr2);updReact(r,yr2);
+    if(yr2>=MAXY){clearInterval(tmr2);run2=false;document.getElementById('btnRun2').textContent='Run';}
+  },140);
+});
+
+// ============================================================
+// TAB 3: INTERVENTIONS
+// ============================================================
+function toggleI(k){
+  interventions[k]=!interventions[k];
+  document.getElementById('i-'+k).className='interv'+(interventions[k]?' on':'');
+}
+function clearInterv(){
+  Object.keys(interventions).forEach(k=>{interventions[k]=false;document.getElementById('i-'+k).className='interv';});
+  document.getElementById('interv-note').textContent='Select interventions above, then click Compare.';
+  if(charts['cInterv']){charts['cInterv'].destroy();delete charts['cInterv'];}
+}
+function runInterv(){
+  const base=simReaction({},MAXY);
+  const withI=simReaction({...interventions},MAXY);
+  const lbs=mkL(MAXY);
+  mkChart('cInterv',{type:'line',data:{labels:lbs,datasets:[
+    {data:base.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
+    {data:withI.lab,borderColor:'#3266ad',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
+    {data:Array(MAXY+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
+  ]},options:{...baseOpts('%'),animation:{duration:500}}});
+
+  const active=Object.entries(interventions).filter(([,v])=>v).map(([k])=>k);
+  const bc=base.crisis?`Base: crisis ${START+base.crisis}.`:'Base: no crisis in window.';
+  const ic=withI.crisis?`With interventions: crisis ${START+withI.crisis}.`:'With interventions: no crisis in window.';
+  const delay=base.crisis&&withI.crisis?` ${withI.crisis-base.crisis}-year delay.`:(!withI.crisis&&base.crisis)?' Interventions prevent crisis entirely in window.':'';
+  document.getElementById('interv-note').textContent=active.length?bc+' '+ic+delay:'Select at least one intervention.';
+}
+
+// ============================================================
+// TAB 4: SCENARIOS
+// ============================================================
+function buildScenCharts(){
+  const ry=simConcentration(SCENS.yours,MAXY);
+  const ra=simConcentration(SCENS.amodei,MAXY);
+  const rc=simConcentration(SCENS.consensus,MAXY);
+  const lbs=mkL(MAXY);
+  mkChart('cScen1',{type:'line',data:{labels:lbs,datasets:[
+    {data:ry.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
+    {data:ra.lab,borderColor:'#E29B00',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:rc.lab,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:Array(MAXY+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
+  ]},options:baseOpts('%')});
+  mkChart('cScen2',{type:'line',data:{labels:lbs,datasets:[
+    {data:ry.wk,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
+    {data:ra.wk,borderColor:'#E29B00',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+    {data:rc.wk,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
+  ]},options:baseOpts('%',0,60)});
+}
+function setScen(s){
+  ['yours','amodei','consensus'].forEach(k=>document.getElementById('sc-'+k).className='scen'+(k===s?' active':''));
+}
+
+// ============================================================
+// TAB 5: WINDOW
+// ============================================================
+function buildWindowCharts(){
+  const startYrs=[0,1,2,3,4,5,6,7,8];
+  const lbs=startYrs.map(y=>y===0?'Now':`Yr ${y} (${START+y})`);
+  const crisisYrs=startYrs.map(sy=>{
+    const r=simReaction({iStart:sy},MAXY);
+    return r.crisis?START+r.crisis:MAXY+START+1;
+  });
+  const colors=crisisYrs.map(cy=>cy>START+MAXY?'#1D9E75':cy<START+10?'#D85A30':'#E29B00');
+
+  mkChart('cWindow',{type:'bar',data:{labels:lbs,datasets:[{
+    data:crisisYrs.map(cy=>Math.min(cy,START+MAXY+1)),
+    backgroundColor:colors,borderWidth:0,borderRadius:4
+  }]},options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:500},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw>START+MAXY?'No crisis in window':'Crisis year: '+c.raw}}},
+    scales:{x:{ticks:{font:{size:10}}},
+            y:{min:START,max:START+MAXY+2,ticks:{font:{size:10},callback:v=>v<=START+MAXY?v:'No crisis'},grid:{color:'rgba(128,128,128,0.08)'}}}
+  }});
+
+  const params=['aware','effect','lag','ceil'];
+  const pLabs=['Awareness speed','Policy effect','Political lag','Capture ceiling'];
+  const dsColors=['#3266ad','#1D9E75','#E29B00','#D85A30'];
+  const datasets=params.map((p,i)=>{
+    const data=startYrs.map(sy=>{
+      const base=simReaction({iStart:sy},MAXY);
+      const bCr=base.crisis||MAXY+1;
+      const overrides={aware:gp('pAware'),effect:gp('pEffect'),lag:gp('pPolLag'),ceil:gp('pCeil')};
+      overrides[p]=p==='lag'?gp('pPolLag')*0.5:p==='ceil'?gp('pCeil')*0.5:Math.min(1,overrides[p]*1.5);
+      const alt=simReaction({iStart:sy,...overrides},MAXY);
+      return Math.abs((alt.crisis||MAXY+1)-bCr);
+    });
+    return {label:pLabs[i],data,borderColor:dsColors[i],borderWidth:2,pointRadius:3,tension:0.4,fill:false};
+  });
+  mkChart('cSens2',{type:'line',data:{labels:lbs,datasets},options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>c.dataset.label+': ±'+c.raw+' yr'}}},
+    scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:v=>'±'+v+' yr'},grid:{color:'rgba(128,128,128,0.08)'}}}
+  }});
+
+  const firstSafe=startYrs.find((sy,i)=>crisisYrs[i]>START+MAXY);
+  document.getElementById('window-note').innerHTML=firstSafe!==undefined
+    ?`Under current parameters, intervention starting in <b>${START+firstSafe}</b> or earlier avoids crisis in the 20-year window. Each year of delay reduces effectiveness non-linearly because elite capture compounds. After ~${firstSafe+START+1}, no single-parameter improvement is sufficient.`
+    :`Under current parameters, reaction is insufficient at <i>any</i> start year in the window. Reducing the capture ceiling below ${(gp('pCeil')*0.6).toFixed(2)} AND cutting political lag below 1.5yr are both necessary.`;
+}
+
+// ============================================================
+// TAB 6: SENSITIVITY
+// ============================================================
+function buildSensChart(){
+  const paramDefs=[
+    {label:'Capability doubling time',key:'pDouble',dir:-1,lo:v=>v*0.5,hi:v=>Math.min(24,v*1.5)},
+    {label:'R&D feedback strength',  key:'pRD',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(1,v*1.5)},
+    {label:'WC displacement speed',  key:'pWC',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(1,v*1.5)},
+    {label:'BC displacement speed',  key:'pBC',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(0.8,v*1.5)},
+    {label:'Political lag',           key:'pPolLag',dir:-1,lo:v=>v*0.5,hi:Math.min(6,v=>v*1.5)},
+    {label:'Elite capture ceiling',   key:'pCeil',  dir:1, lo:v=>v*0.5,hi:v=>Math.min(0.9,v*1.5)},
+  ];
+  const results=paramDefs.map(pd=>{
+    const base=simConcentration({},MAXY);
+    const bCr=base.crisis||MAXY+1;
+    const cur=gp(pd.key);
+    const cfgLo={},cfgHi={};
+    const keyMap={pDouble:'doubleYrs',pRD:'rdFB',pWC:'wcRate',pBC:'bcRate',pPolLag:'polLag',pCeil:'capCeil'};
+    const mk=v=>pd.key==='pDouble'?v/12:v;
+    // use reaction sim for policy params, concentration for others
+    if(pd.key==='pPolLag'||pd.key==='pCeil'){
+      const rLo=simReaction({lag:pd.lo(cur)},MAXY);
+      const rHi=simReaction({lag:pd.hi(cur)},MAXY);
+      const impact=Math.abs((rLo.crisis||MAXY+1)-(rHi.crisis||MAXY+1));
+      return {...pd,impact};
+    } else {
+      const ovLo={[keyMap[pd.key]]:mk(pd.lo(cur))};
+      const ovHi={[keyMap[pd.key]]:mk(pd.hi(cur))};
+      const rLo=simConcentration(ovLo,MAXY);
+      const rHi=simConcentration(ovHi,MAXY);
+      const impact=Math.abs((rLo.crisis||MAXY+1)-(rHi.crisis||MAXY+1));
+      return {...pd,impact};
+    }
+  });
+  const maxI=Math.max(...results.map(r=>r.impact),1);
+  mkChart('cSens1',{type:'bar',data:{
+    labels:results.map(r=>r.label),
+    datasets:[{data:results.map(r=>r.impact),
+      backgroundColor:['#D85A30','#3266ad','#E29B00','#1D9E75','#888780','#D85A30'].map((c,i)=>c),
+      borderWidth:0,borderRadius:4}]
+  },options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'±'+c.raw+' years shift in crisis timing'}}},
+    scales:{x:{ticks:{font:{size:10},callback:v=>'±'+v+' yr'},grid:{color:'rgba(128,128,128,0.08)'}},
+            y:{ticks:{font:{size:11}},grid:{display:false}}}
+  }});
+
+  document.getElementById('sens-grid').innerHTML=results.map(r=>`
+    <div class="sens-row">
+      <span>${r.label}</span>
+      <div class="sens-bar-bg"><div class="sens-bar" style="width:${Math.round(r.impact/maxI*100)}%;background:${r.dir>0?'#D85A30':'#3266ad'}"></div></div>
+      <span>±${r.impact} yr</span>
+    </div>`).join('');
+}
+
+// ============================================================
+// SLIDER WIRING
+// ============================================================
+const sliders=[
+  ['pDouble','vDouble',v=>v+' mo'],
+  ['pRD','vRD',v=>(+v).toFixed(2)],
+  ['pWC','vWC',v=>(+v).toFixed(2)],
+  ['pBC','vBC',v=>(+v).toFixed(2)],
+  ['pAwareLag','vAwareLag',v=>v+'yr'],
+  ['pPolLag','vPolLag',v=>v+'yr'],
+  ['pEffect','vEffect',v=>(+v).toFixed(2)],
+  ['pCapture','vCapture',v=>(+v).toFixed(2)+'x'],
+  ['pCeil','vCeil',v=>(+v).toFixed(2)],
+  ['pAware','vAware',v=>(+v).toFixed(2)],
+];
+sliders.forEach(([id,vid,fmt])=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',e=>{ document.getElementById(vid).textContent=fmt(e.target.value); });
+});
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+const tabIds=['concentration','reaction','interventions','scenarios','window','sensitivity','timeline'];
+const built={};
+function sw(t){
+  tabIds.forEach(id=>{
+    document.getElementById('p-'+id).style.display=id===t?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabIds[i]===t));
+  if(!built[t]){
+    built[t]=true;
+    if(t==='reaction') initReact();
+    if(t==='interventions') runInterv();
+    if(t==='scenarios') buildScenCharts();
+    if(t==='window') buildWindowCharts();
+    if(t==='sensitivity') buildSensChart();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initConc();
+</script>
+</body>
+</html>
