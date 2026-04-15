@@ -1,1109 +1,1332 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Power Concentration Simulation</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #ffffff;
-    --bg2: #f7f7f5;
-    --bg3: #f0eeeb;
-    --text: #1a1a1a;
-    --text2: #555550;
-    --text3: #888880;
-    --border: rgba(0,0,0,0.12);
-    --border2: rgba(0,0,0,0.22);
-    --red: #D85A30;
-    --red-bg: #FAECE7;
-    --red-text: #7C2D12;
-    --amber: #E29B00;
-    --amber-bg: #FAEEDA;
-    --amber-text: #78350F;
-    --green: #1D9E75;
-    --green-bg: #EAF3DE;
-    --green-text: #173404;
-    --blue: #3266ad;
-    --blue-bg: #E6F1FB;
-    --blue-text: #0C447C;
-    --gray: #888780;
-    --radius: 8px;
-    --radius-lg: 12px;
-  }
-
-  @media (prefers-color-scheme: dark) {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Power Concentration in the Age of AGI</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
     :root {
-      --bg: #1a1a1a;
-      --bg2: #242424;
-      --bg3: #2e2e2e;
-      --text: #f0eeeb;
-      --text2: #aaa89f;
-      --text3: #6e6c65;
-      --border: rgba(255,255,255,0.10);
-      --border2: rgba(255,255,255,0.18);
-      --red-bg: rgba(216,90,48,0.15);
-      --red-text: #f4a07a;
-      --amber-bg: rgba(226,155,0,0.15);
-      --amber-text: #f5c842;
-      --green-bg: rgba(29,158,117,0.15);
-      --green-text: #5dd6aa;
-      --blue-bg: rgba(50,102,173,0.15);
-      --blue-text: #82b0e8;
+      --bg: #f5efe5;
+      --paper: #fbf7f0;
+      --ink: #1d1a17;
+      --muted: #6d655d;
+      --line: #d7caba;
+      --blue-deep: #2554a4;
+      --blue: #4f7fd8;
+      --blue-light: #9cc8ff;
+      --blue-soft: rgba(79, 127, 216, 0.18);
+      --gold: #b98b1f;
+      --gold-soft: rgba(185, 139, 31, 0.18);
+      --accent: #8d2a1f;
+      --elite: #5e4312;
+      --shadow: 0 18px 40px rgba(54, 39, 15, 0.08);
+      --radius: 22px;
     }
-  }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 15px;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  .page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-  }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(185, 139, 31, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(79, 127, 216, 0.12), transparent 26%),
+        var(--bg);
+      color: var(--ink);
+    }
 
-  /* Header */
-  .header { margin-bottom: 2rem; border-bottom: 0.5px solid var(--border2); padding-bottom: 1.5rem; }
-  .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
-  .header p { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 680px; }
-  .header a { color: var(--blue); text-decoration: none; }
-  .header a:hover { text-decoration: underline; }
+    .page {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 28px auto 56px;
+    }
 
-  /* Tabs */
-  .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; gap: 0; overflow-x: auto; }
-  .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border: none; background: none;
-         color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px;
-         white-space: nowrap; transition: color 0.15s; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
-  .panel { display: none; } .panel.active { display: block; }
+    .hero {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
 
-  /* Source bar */
-  .sources {
-    font-size: 11px; color: var(--text3); line-height: 1.8;
-    background: var(--bg2); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 1.25rem;
-  }
-  .sources b { color: var(--text2); }
-  .tag { background: var(--bg3); border-radius: 4px; padding: 2px 7px; margin-right: 4px;
-         display: inline-block; margin-bottom: 2px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      padding: 8px 14px;
+      border: 1px solid rgba(29, 26, 23, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-  /* Grids */
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
-  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
-  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
-  @media (max-width: 640px) {
-    .g2, .g3, .g4 { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 400px) {
-    .g2, .g3, .g4 { grid-template-columns: 1fr; }
-  }
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 5vw, 58px);
+      line-height: 0.98;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      max-width: 12ch;
+    }
 
-  /* Cards */
-  .card { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; }
-  .card label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 2px; font-weight: 500; }
-  .card .src { font-size: 10px; color: var(--text3); margin-bottom: 6px; line-height: 1.4; }
-  .prow { display: flex; align-items: center; gap: 8px; }
-  .pval { font-size: 13px; font-weight: 500; min-width: 52px; color: var(--text); }
+    .layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
 
-  input[type=range] {
-    flex: 1; height: 4px; -webkit-appearance: none; appearance: none;
-    background: var(--border2); border-radius: 2px; outline: none; cursor: pointer;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-    background: var(--text); cursor: pointer;
-  }
+    @media (max-width: 1040px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  /* Metric cards */
-  .metric { background: var(--bg2); border-radius: var(--radius); padding: 10px 14px; }
-  .ml { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
-  .mv { font-size: 22px; font-weight: 500; }
-  .mv.red { color: var(--red); }
-  .mv.amber { color: var(--amber); }
-  .mv.grn { color: var(--green); }
+    @media (max-width: 720px) {
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
 
-  /* Chart boxes */
-  .cbox {
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .ct { font-size: 12px; color: var(--text2); margin-bottom: 8px;
-        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
-  .ct b { color: var(--text); font-weight: 500; }
-  .leg { display: flex; gap: 12px; flex-wrap: wrap; }
-  .li { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
-  .ld { width: 14px; height: 3px; border-radius: 2px; }
+      .bar-value {
+        text-align: left;
+      }
+    }
 
-  /* Buttons */
-  .btn-row { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap; }
-  button {
-    cursor: pointer; border: 0.5px solid var(--border2); background: transparent;
-    border-radius: var(--radius); padding: 7px 16px; font-size: 13px; color: var(--text);
-    transition: background 0.15s;
-  }
-  button:hover { background: var(--bg2); }
-  button.pri { background: var(--text); color: var(--bg); border-color: var(--text); }
-  button.pri:hover { opacity: 0.85; }
-  .yr-lbl { font-size: 12px; color: var(--text2); margin-left: auto; }
+    .card {
+      background: var(--paper);
+      border: 1px solid rgba(29, 26, 23, 0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
 
-  /* Alerts */
-  .alert { border-radius: var(--radius); padding: 10px 14px; font-size: 12px;
-           line-height: 1.6; margin-bottom: 10px; display: none; }
-  .alert.show { display: block; }
-  .alert.red { background: var(--red-bg); color: var(--red-text); }
-  .alert.amber { background: var(--amber-bg); color: var(--amber-text); }
-  .alert.grn { background: var(--green-bg); color: var(--green-text); }
+    .sidebar {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+    }
 
-  /* Meters */
-  .meter-wrap { margin-bottom: 1.25rem; }
-  .meter-section-label { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
-  .meter-row { display: grid; grid-template-columns: 140px 1fr 48px;
-               align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--text2); }
-  .meter-bg { background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
-  .meter-fill { height: 8px; border-radius: 4px; transition: width 0.35s; }
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 17px;
+      letter-spacing: 0.02em;
+    }
 
-  /* Outcome */
-  .outcome { border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 1.25rem; display: none; }
-  .outcome.show { display: block; }
-  .outcome h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
-  .outcome p { font-size: 12px; line-height: 1.65; opacity: 0.9; }
-  .outcome.success { background: var(--green-bg); color: var(--green-text); }
-  .outcome.fail { background: var(--red-bg); color: var(--red-text); }
-  .outcome.marginal { background: var(--amber-bg); color: var(--amber-text); }
+    .section-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
 
-  /* Interventions */
-  .interv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
-  @media (max-width: 600px) { .interv-grid { grid-template-columns: 1fr 1fr; } }
-  .interv {
-    border: 0.5px solid var(--border); border-radius: var(--radius-lg);
-    padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
-  }
-  .interv:hover { background: var(--bg2); }
-  .interv.on { border-color: var(--blue); background: var(--blue-bg); }
-  .interv h4 { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
-  .interv p { font-size: 11px; color: var(--text2); line-height: 1.5; }
-  .badge {
-    font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; margin-top: 5px;
-    background: var(--bg3); color: var(--text2);
-  }
-  .interv.on .badge { background: var(--blue-bg); color: var(--blue-text); }
+    .assumptions {
+      display: grid;
+      gap: 10px;
+    }
 
-  /* Scenarios */
-  .scen-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
-  @media (max-width: 600px) { .scen-grid { grid-template-columns: 1fr; } }
-  .scen {
-    border: 0.5px solid var(--border); border-radius: var(--radius-lg);
-    padding: 12px 14px; cursor: pointer; transition: all 0.15s;
-  }
-  .scen:hover { background: var(--bg2); }
-  .scen.active { border-color: var(--blue); background: var(--blue-bg); }
-  .scen h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-  .scen p { font-size: 11px; color: var(--text2); line-height: 1.5; }
-  .scen .stag { font-size: 10px; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 5px; }
-  .tag-red { background: var(--red-bg); color: var(--red-text); }
-  .tag-amber { background: var(--amber-bg); color: var(--amber-text); }
-  .tag-blue { background: var(--blue-bg); color: var(--blue-text); }
+    .assumption {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(29, 26, 23, 0.06);
+    }
 
-  /* Window chart colors */
-  .window-note {
-    font-size: 12px; color: var(--text2); line-height: 1.7; margin-top: 10px;
-    padding: 12px 14px; background: var(--bg2); border-radius: var(--radius);
-  }
+    .assumption h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
 
-  /* Sensitivity */
-  .sens-grid { display: grid; gap: 8px; margin-top: 1rem; }
-  .sens-row { display: grid; grid-template-columns: 160px 1fr 60px;
-              align-items: center; gap: 10px; font-size: 12px; color: var(--text2); }
-  .sens-bar-bg { background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
-  .sens-bar { height: 8px; border-radius: 4px; transition: width 0.5s; }
+    .assumption p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
 
-  /* Timeline */
-  .timeline { padding-left: 8px; }
-  .tl { position: relative; padding: 0 0 18px 24px; font-size: 12px;
-        line-height: 1.65; color: var(--text2); }
-  .tl::before { content: ''; position: absolute; left: 0; top: 6px; width: 8px; height: 8px;
-                border-radius: 50%; background: var(--red); }
-  .tl::after { content: ''; position: absolute; left: 3.5px; top: 14px;
-               width: 1px; bottom: 0; background: var(--border2); }
-  .tl:last-child::after { display: none; }
-  .tl b { color: var(--text); }
-  .tl i { color: var(--text3); }
+    .icon-shell {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(236,227,214,0.94));
+      border: 1px solid rgba(29, 26, 23, 0.08);
+      color: var(--ink);
+    }
 
-  /* Info block */
-  .info {
-    font-size: 12px; color: var(--text2); line-height: 1.75;
-    background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 1.25rem;
-  }
-  .info b { color: var(--text); }
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
 
-  /* Footer */
-  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border);
-            font-size: 11px; color: var(--text3); line-height: 1.8; }
-  .footer a { color: var(--blue-text); text-decoration: none; }
-</style>
+    .slider-shell {
+      padding: 14px 16px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(29, 26, 23, 0.08);
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .control-row strong {
+      font-size: 15px;
+    }
+
+    .control-row span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .control-button {
+      border: 1px solid rgba(29,26,23,0.1);
+      background: white;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .control-button.primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .range-wrap {
+      position: relative;
+      padding-top: 4px;
+    }
+
+    .range-help {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    input[type="range"]:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(29, 26, 23, 0.08);
+    }
+
+    .toggle-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .toggle-copy strong {
+      font-size: 15px;
+    }
+
+    .toggle-copy span {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .switch {
+      position: relative;
+      width: 54px;
+      height: 32px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .track {
+      position: absolute;
+      inset: 0;
+      background: #c4b29a;
+      border-radius: 999px;
+      transition: 180ms ease;
+      cursor: pointer;
+    }
+
+    .track::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 4px;
+      top: 4px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: 180ms ease;
+    }
+
+    .switch input:checked + .track {
+      background: var(--accent);
+    }
+
+    .switch input:checked + .track::after {
+      transform: translateX(22px);
+    }
+
+    .chart-card {
+      padding: 20px 20px 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .chart-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .chart-head h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.05;
+    }
+
+    .chart-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 64ch;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      border: 1px solid rgba(29, 26, 23, 0.08);
+      background: rgba(255,255,255,0.75);
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .svg-wrap {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,242,232,0.94));
+      border: 1px solid rgba(29, 26, 23, 0.08);
+      padding: 14px;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .axis-note {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .totals {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .totals {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .total-card {
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(29, 26, 23, 0.08);
+    }
+
+    .total-card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .threshold-panel {
+      margin-top: 18px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(29, 26, 23, 0.08);
+    }
+
+    .threshold-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .threshold-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .threshold-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .threshold-status {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(29, 26, 23, 0.08);
+      background: rgba(255,255,255,0.88);
+    }
+
+    .threshold-status.crossed {
+      background: rgba(141, 42, 31, 0.12);
+      color: var(--accent);
+      border-color: rgba(141, 42, 31, 0.2);
+    }
+
+    .barplot {
+      display: grid;
+      gap: 14px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr) 64px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bar-label {
+      font-size: 14px;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(29, 26, 23, 0.08);
+      border: 1px solid rgba(29, 26, 23, 0.06);
+    }
+
+    .bar-track-wrap {
+      position: relative;
+      padding-top: 18px;
+    }
+
+    .track-threshold {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      border-left: 2px dashed rgba(141, 42, 31, 0.65);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .track-threshold span {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--paper);
+      padding: 0 6px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .bar-value {
+      text-align: right;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .big-number {
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 0.95;
+      font-weight: 600;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .totals-note {
+      margin-top: -2px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .lucide {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
 </head>
 <body>
-<div class="page">
+  <main id="root"></main>
 
-  <div class="header">
-    <h1>AI Power Concentration — Interactive Simulation</h1>
-    <p>
-      A quantitative model of the race between AI-driven power concentration and societal reaction mechanisms,
-      calibrated to real-world data. Built to accompany the essay
-      <em>The Wrong Conversation</em>. Explore how awareness lag, political lag, and elite capture
-      interact — and whether any intervention prevents stable autocracy.
-    </p>
-    <p style="margin-top:8px">
-      <span style="font-size:11px;color:var(--text3)">
-        Data sources: METR 2025 · Epoch AI · McKinsey Nov 2025 · Goldman Sachs · Crunchbase 2025 ·
-        OpenSecrets lobbying data · UBS Wealth Report 2024
-      </span>
-    </p>
-  </div>
+  <script type="text/babel">
+    const { useEffect, useMemo, useState } = React;
 
-  <div class="tabs">
-    <button class="tab active" onclick="sw('concentration')">Concentration</button>
-    <button class="tab" onclick="sw('reaction')">Reaction mechanics</button>
-    <button class="tab" onclick="sw('interventions')">Interventions</button>
-    <button class="tab" onclick="sw('scenarios')">Scenarios</button>
-    <button class="tab" onclick="sw('window')">Intervention window</button>
-    <button class="tab" onclick="sw('sensitivity')">Sensitivity</button>
-    <button class="tab" onclick="sw('timeline')">Event timeline</button>
-  </div>
+    const PERCENTILES = Array.from({ length: 101 }, (_, i) => i);
+    const ELITE_CUTOFF = 95;
+    const EARLY_ABSOLUTE_Y_MAX = 1.15;
+    const ADAPTIVE_LABOR_RATIO_THRESHOLD = 0.08;
+    const PEAK_PRESSURE_START = 0.82;
+    const AGI_GROWTH_RATE = 0.22;
+    const TAKEOFF_TIME_SCALE = 10;
+    const UBI_GROWTH_BREAK_EVEN_RATE = 100;
+    const POWER_BREAK_EVEN_HORIZON = 60;
 
-  <!-- ===== CONCENTRATION ===== -->
-  <div class="panel active" id="p-concentration">
-    <div class="sources">
-      <b>Calibration:</b>
-      <span class="tag">METR Mar 2025: capability 2x/7mo</span>
-      <span class="tag">McKinsey Nov 2025: 57% tasks automatable</span>
-      <span class="tag">Crunchbase 2025: top 2 labs = 14% global VC</span>
-      <span class="tag">UBS 2024: global wealth Gini ~0.88</span>
-    </div>
-
-    <div class="g2">
-      <div class="card">
-        <label>AI capability doubling time (months)</label>
-        <div class="src">METR 2025: 7mo observed; range 3–24mo</div>
-        <div class="prow"><input type="range" min="3" max="24" value="7" id="pDouble" step="1"><span class="pval" id="vDouble">7 mo</span></div>
-      </div>
-      <div class="card">
-        <label>R&D automation feedback strength</label>
-        <div class="src">Epoch AI: algo efficiency 3x/yr. Current automation ~15–35% of AI research.</div>
-        <div class="prow"><input type="range" min="0" max="1" value="0.55" id="pRD" step="0.05"><span class="pval" id="vRD">0.55</span></div>
-      </div>
-      <div class="card">
-        <label>White-collar displacement speed</label>
-        <div class="src">Amodei/CNN 2025: 40% Claude usage = full automation. Sholto Douglas: near-full WC by 2027-28.</div>
-        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.85" id="pWC" step="0.05"><span class="pval" id="vWC">0.85</span></div>
-      </div>
-      <div class="card">
-        <label>Blue-collar displacement speed</label>
-        <div class="src">Skild AI, Figure, Tesla Optimus timelines. Ken Goldberg (UC Berkeley) is a credible skeptic.</div>
-        <div class="prow"><input type="range" min="0.05" max="0.8" value="0.60" id="pBC" step="0.05"><span class="pval" id="vBC">0.60</span></div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="pri" id="btnRun1">Run</button>
-      <button onclick="reset1()">Reset</button>
-      <span class="yr-lbl" id="yr1">2025</span>
-    </div>
-
-    <div class="alert red" id="al-autocracy">
-      <b>Stable autocracy threshold reached.</b> The top-lab cluster controls &gt;60% of effective economic power.
-      This is the self-reinforcing equilibrium described in the essay — no endogenous exit mechanism remains.
-    </div>
-    <div class="alert amber" id="al-irreversible">
-      <b>Labor irreversibility threshold.</b> Labor's power share has fallen below 5%.
-      Collective bargaining and democratic pressure are no longer viable countervailing forces.
-    </div>
-
-    <div class="g4">
-      <div class="metric"><div class="ml">Top-lab power share</div><div class="mv" id="mLab1">8%</div></div>
-      <div class="metric"><div class="ml">Labor power share</div><div class="mv" id="mWk1">55%</div></div>
-      <div class="metric"><div class="ml">Wealth Gini</div><div class="mv" id="mGini1">0.88</div></div>
-      <div class="metric"><div class="ml">Crisis year</div><div class="mv" id="mCrisis1">—</div></div>
-    </div>
-
-    <div class="cbox">
-      <div class="ct"><b>Power distribution</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#D85A30"></div>Top-lab cluster</div>
-          <div class="li"><div class="ld" style="background:#3266ad"></div>Capital owners</div>
-          <div class="li"><div class="ld" style="background:#888780"></div>Labor</div>
-          <div class="li"><div class="ld" style="background:#ccc;border-top:2px dashed #ccc;height:0;width:16px"></div>Crisis threshold</div>
-        </div>
-      </div>
-      <div style="position:relative;height:220px"><canvas id="cPow1"></canvas></div>
-    </div>
-    <div class="g2">
-      <div class="cbox">
-        <div class="ct"><b>Labor displacement</b>
-          <div class="leg">
-            <div class="li"><div class="ld" style="background:#D85A30"></div>White collar</div>
-            <div class="li"><div class="ld" style="background:#3266ad"></div>Blue collar</div>
-          </div>
-        </div>
-        <div style="position:relative;height:170px"><canvas id="cDisp1"></canvas></div>
-      </div>
-      <div class="cbox">
-        <div class="ct"><b>Capability gap (log scale)</b>
-          <div class="leg">
-            <div class="li"><div class="ld" style="background:#3266ad"></div>Leader</div>
-            <div class="li"><div class="ld" style="background:#D85A30;border-top:2px dashed #D85A30;height:0;width:16px"></div>2nd place</div>
-          </div>
-        </div>
-        <div style="position:relative;height:170px"><canvas id="cCap1"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== REACTION ===== -->
-  <div class="panel" id="p-reaction">
-    <div class="info">
-      <b>Three interacting mechanisms.</b> Each is modeled as a differential equation feeding the others.
-      They don't add — they multiply. Elite capture doesn't just slow reaction; it degrades
-      the awareness-to-policy pipeline itself. The key output is <b>net reaction force</b>:
-      policy strength × (1 − elite capture).
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.25rem">
-      <div class="card">
-        <label>Awareness lag (years)</label>
-        <div class="src">Time before public recognises displacement as systemic. ~1–3yr historically.</div>
-        <div class="prow"><input type="range" min="0.5" max="4" value="1.5" id="pAwareLag" step="0.5"><span class="pval" id="vAwareLag">1.5yr</span></div>
-      </div>
-      <div class="card">
-        <label>Political lag (years)</label>
-        <div class="src">Awareness → enacted legislation. GDPR: 4yr. Sherman Act: 6yr. US avg: 3–5yr.</div>
-        <div class="prow"><input type="range" min="0.5" max="6" value="2.5" id="pPolLag" step="0.5"><span class="pval" id="vPolLag">2.5yr</span></div>
-      </div>
-      <div class="card">
-        <label>Policy effectiveness (0–1)</label>
-        <div class="src">How much enacted legislation actually constrains behavior. EU AI Act ~0.4; strong US antitrust ~0.7.</div>
-        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.5" id="pEffect" step="0.05"><span class="pval" id="vEffect">0.50</span></div>
-      </div>
-      <div class="card">
-        <label>Lobbying growth rate (x/yr)</label>
-        <div class="src">OpenAI: 7x in 1yr. Nvidia: 388% YoY. Big Tech: $400K/day in Congress by H1 2025.</div>
-        <div class="prow"><input type="range" min="1.0" max="5.0" value="3.0" id="pCapture" step="0.25"><span class="pval" id="vCapture">3.0x</span></div>
-      </div>
-      <div class="card">
-        <label>Elite capture ceiling</label>
-        <div class="src">Max fraction of policy that lobbying can neutralise. Telecom/finance historical cases: 40–80%.</div>
-        <div class="prow"><input type="range" min="0.1" max="0.9" value="0.6" id="pCeil" step="0.05"><span class="pval" id="vCeil">0.60</span></div>
-      </div>
-      <div class="card">
-        <label>Public awareness speed</label>
-        <div class="src">How fast people viscerally feel displacement as a crisis. Faster = earlier political pressure.</div>
-        <div class="prow"><input type="range" min="0.1" max="1.0" value="0.5" id="pAware" step="0.05"><span class="pval" id="vAware">0.50</span></div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="pri" id="btnRun2">Run</button>
-      <button onclick="reset2()">Reset</button>
-      <span class="yr-lbl" id="yr2">2025</span>
-    </div>
-
-    <div class="outcome success" id="out-success"><h3>✓ Crisis averted</h3><p id="out-success-text"></p></div>
-    <div class="outcome fail" id="out-fail"><h3>⚠ Stable autocracy reached</h3><p id="out-fail-text"></p></div>
-    <div class="outcome marginal" id="out-marginal"><h3>⚡ Marginal — reaction barely holds</h3><p id="out-marginal-text"></p></div>
-
-    <div class="meter-wrap">
-      <div class="meter-section-label">Live system state</div>
-      <div class="meter-row"><span>Public awareness</span><div class="meter-bg"><div class="meter-fill" id="mAware" style="background:#3266ad;width:0%"></div></div><span id="vmAware">0%</span></div>
-      <div class="meter-row"><span>Policy strength</span><div class="meter-bg"><div class="meter-fill" id="mPolicy" style="background:#1D9E75;width:0%"></div></div><span id="vmPolicy">0%</span></div>
-      <div class="meter-row"><span>Elite capture</span><div class="meter-bg"><div class="meter-fill" id="mElite" style="background:#D85A30;width:0%"></div></div><span id="vmElite">0%</span></div>
-      <div class="meter-row"><span>Net reaction force</span><div class="meter-bg"><div class="meter-fill" id="mNet" style="background:#1D9E75;width:0%"></div></div><span id="vmNet">0%</span></div>
-    </div>
-
-    <div class="cbox">
-      <div class="ct"><b>The race: concentration vs. reaction</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#D85A30"></div>Lab power</div>
-          <div class="li"><div class="ld" style="background:#3266ad"></div>Labor share</div>
-          <div class="li"><div class="ld" style="background:#1D9E75"></div>Net reaction</div>
-        </div>
-      </div>
-      <div style="position:relative;height:220px"><canvas id="cRace"></canvas></div>
-    </div>
-    <div class="cbox">
-      <div class="ct"><b>Reaction anatomy</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#3266ad"></div>Awareness</div>
-          <div class="li"><div class="ld" style="background:#1D9E75"></div>Policy</div>
-          <div class="li"><div class="ld" style="background:#D85A30"></div>Elite capture (erosion)</div>
-        </div>
-      </div>
-      <div style="position:relative;height:175px"><canvas id="cAnat"></canvas></div>
-    </div>
-  </div>
-
-  <!-- ===== INTERVENTIONS ===== -->
-  <div class="panel" id="p-interventions">
-    <div class="info">Toggle interventions and compare against the base case. Each is modeled from historical precedents and calibrated to observed rates. <b>Early intervention</b> (now, 2025) uses all structural changes simultaneously — the Norway model applied before the resource curse.</div>
-    <div class="interv-grid">
-      <div class="interv" id="i-oss" onclick="toggleI('oss')">
-        <h4>Open-source AI</h4>
-        <p>Distributes capability widely, reducing leader's compounding advantage. Modeled on Llama adoption rates.</p>
-        <span class="badge">–40% lab advantage</span>
-      </div>
-      <div class="interv" id="i-ubi" onclick="toggleI('ubi')">
-        <h4>Universal Basic Income</h4>
-        <p>Redistribution floor as labor income collapses. Requires political will before power concentrates.</p>
-        <span class="badge">Floors labor share at 8%</span>
-      </div>
-      <div class="interv" id="i-reg" onclick="toggleI('reg')">
-        <h4>Antitrust / compute caps</h4>
-        <p>Regulatory limits on frontier compute concentration. Adds friction to R&D feedback loop.</p>
-        <span class="badge">Slows R&D loop 30%</span>
-      </div>
-      <div class="interv" id="i-tax" onclick="toggleI('tax')">
-        <h4>AI wealth tax</h4>
-        <p>Progressive tax on AI-generated capital returns, redistributed as public dividend. Norway SWF model.</p>
-        <span class="badge">–20% capital snowball</span>
-      </div>
-      <div class="interv" id="i-intl" onclick="toggleI('intl')">
-        <h4>International governance</h4>
-        <p>Treaty-based compute monitoring and multi-polar AI development mandates.</p>
-        <span class="badge">+2 effective competing labs</span>
-      </div>
-      <div class="interv" id="i-early" onclick="toggleI('early')">
-        <h4>Early intervention (now)</h4>
-        <p>All structural changes implemented in 2025 while power is still distributed. Highest-leverage option.</p>
-        <span class="badge">Full effect from year 0</span>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="pri" onclick="runInterv()">Compare</button>
-      <button onclick="clearInterv()">Clear all</button>
-    </div>
-    <div class="cbox">
-      <div class="ct"><b>Top-lab power share: base vs. interventions</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#D85A30"></div>No intervention</div>
-          <div class="li"><div class="ld" style="background:#3266ad"></div>With selected</div>
-          <div class="li"><div class="ld" style="background:#ccc;border-top:2px dashed #ccc;height:0;width:16px"></div>Crisis threshold</div>
-        </div>
-      </div>
-      <div style="position:relative;height:230px"><canvas id="cInterv"></canvas></div>
-    </div>
-    <div class="window-note" id="interv-note">Select interventions above, then click Compare.</div>
-  </div>
-
-  <!-- ===== SCENARIOS ===== -->
-  <div class="panel" id="p-scenarios">
-    <div class="scen-grid">
-      <div class="scen active" id="sc-yours" onclick="setScen('yours')">
-        <h4>This essay's scenario</h4>
-        <p>White collar yr 1–2. Blue collar yr 3–5. Fast R&D loop (7mo doubling).</p>
-        <span class="stag tag-red">Crisis: ~2030–2031</span>
-      </div>
-      <div class="scen" id="sc-amodei" onclick="setScen('amodei')">
-        <h4>Amodei (public statements)</h4>
-        <p>50% white collar in 1–5yr. Blue collar slower. Moderate R&D feedback.</p>
-        <span class="stag tag-amber">Crisis: ~2033–2036</span>
-      </div>
-      <div class="scen" id="sc-consensus" onclick="setScen('consensus')">
-        <h4>Davos consensus</h4>
-        <p>Gradual adoption. Firms slow to act. Regulatory drag throughout.</p>
-        <span class="stag tag-blue">Crisis: ~2039–2042</span>
-      </div>
-    </div>
-    <div class="cbox">
-      <div class="ct"><b>All three scenarios: top-lab power share</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#D85A30"></div>This essay</div>
-          <div class="li"><div class="ld" style="background:#E29B00"></div>Amodei</div>
-          <div class="li"><div class="ld" style="background:#3266ad"></div>Davos</div>
-        </div>
-      </div>
-      <div style="position:relative;height:240px"><canvas id="cScen1"></canvas></div>
-    </div>
-    <div class="cbox">
-      <div class="ct"><b>Labor power share: all scenarios</b></div>
-      <div style="position:relative;height:190px"><canvas id="cScen2"></canvas></div>
-    </div>
-    <div class="window-note">
-      <b>Key finding:</b> even the Davos consensus — the most optimistic mainstream view —
-      results in crisis before 2045 under current reaction parameters. The difference between
-      scenarios is how much time we have to intervene, not whether concentration happens.
-    </div>
-  </div>
-
-  <!-- ===== WINDOW ===== -->
-  <div class="panel" id="p-window">
-    <div class="info">How does the outcome change depending on <b>when</b> structural intervention begins? Each bar shows the projected crisis year if intervention starts in that year. <span style="color:var(--green-text)">Green</span> = crisis averted within 20yr window. <span style="color:var(--amber-text)">Amber</span> = delayed. <span style="color:var(--red-text)">Red</span> = crisis before 2035.</div>
-    <div class="cbox">
-      <div class="ct"><b>Crisis year by intervention start year</b></div>
-      <div style="position:relative;height:240px"><canvas id="cWindow"></canvas></div>
-    </div>
-    <div class="cbox">
-      <div class="ct"><b>Which parameter matters most at each start year?</b>
-        <div class="leg">
-          <div class="li"><div class="ld" style="background:#3266ad"></div>Awareness speed</div>
-          <div class="li"><div class="ld" style="background:#1D9E75"></div>Policy effectiveness</div>
-          <div class="li"><div class="ld" style="background:#E29B00"></div>Political lag</div>
-          <div class="li"><div class="ld" style="background:#D85A30"></div>Capture ceiling</div>
-        </div>
-      </div>
-      <div style="position:relative;height:200px"><canvas id="cSens2"></canvas></div>
-    </div>
-    <div class="window-note" id="window-note">Computing...</div>
-  </div>
-
-  <!-- ===== SENSITIVITY ===== -->
-  <div class="panel" id="p-sensitivity">
-    <div class="info">Which parameters drive concentration most? Each bar shows how many years the crisis shifts when that parameter is changed ±50% from its base value. <b>Longer bar = more leverage over the outcome.</b></div>
-    <div class="cbox">
-      <div class="ct"><b>Years to crisis — sensitivity to each parameter</b></div>
-      <div style="position:relative;height:240px"><canvas id="cSens1"></canvas></div>
-    </div>
-    <div class="sens-grid" id="sens-grid"></div>
-    <div class="window-note" style="margin-top:1rem">
-      <b>Key finding:</b> R&D feedback strength and capability doubling time are the dominant levers —
-      consistent with the essay's core thesis. The reaction mechanisms (political lag, capture ceiling)
-      matter significantly, but only once displacement is already underway. Number of competing labs
-      has surprisingly low effect beyond ~3, because market-share dynamics consolidate regardless.
-    </div>
-  </div>
-
-  <!-- ===== TIMELINE ===== -->
-  <div class="panel" id="p-timeline">
-    <div class="info">Projected sequence of events under the essay's displacement scenario. Events are model-derived and anchored to empirical data. Treat as a structural tendency, not a precise forecast.</div>
-    <div class="timeline">
-      <div class="tl"><b>2025–2026 (now)</b> — Entry-level white-collar hiring collapses. Finance, law, consulting, software testing, content creation. <i>Already underway: US job openings at lowest since 2021 (BLS Dec 2025), steepest declines in professional and financial services.</i></div>
-      <div class="tl"><b>2026–2027</b> — Mid-level white-collar automation reaches ~60–70%. Professional-class unemployment spikes. Top-lab cluster begins absorbing displaced capital at scale. Gini crosses 0.93. Elite capture of regulatory agencies accelerating.</div>
-      <div class="tl"><b>2027</b> — <b style="color:var(--amber)">Intervention window closes</b> under base-case parameters. After this point, meaningful structural reform requires simultaneously improving awareness speed, policy effectiveness, and structural lobbying limits — not any one of them alone.</div>
-      <div class="tl"><b>2027–2028</b> — White-collar displacement near-complete. Labor's power share drops below 20%. Democratic political pressure theoretically possible but structurally weakening. Last viable window for antitrust structural remedies.</div>
-      <div class="tl"><b>2028–2029</b> — Blue-collar displacement begins in earnest. Logistics, warehousing, manufacturing. Labor share below 10% — irreversibility threshold. The population that would need to organize to stop concentration has lost the economic leverage required to do so.</div>
-      <div class="tl"><b>2029–2030</b> — Blue-collar displacement accelerates across construction, transport, physical services. Human labor no longer a meaningful economic input in most sectors. Power concentrates into top-lab + aligned capital.</div>
-      <div class="tl"><b>2030–2031</b> — <b style="color:var(--red)">Crisis threshold.</b> Top-lab cluster passes 60% of effective economic power. UBI, if not already structurally embedded with independent funding mechanisms, now requires the goodwill of entities that have captured the political system. The stable autocracy equilibrium.</div>
-      <div class="tl"><b>2031+</b> — Self-reinforcing equilibrium. The lab cluster owns the AI, the capital, and the physical infrastructure. No endogenous redistribution mechanism. The Norway window — democratic structures installed before the resource curse — has closed.</div>
-    </div>
-  </div>
-
-  <div class="footer">
-    Model calibrated to: METR (Mar 2025) capability doubling measurements · Epoch AI efficiency data ·
-    McKinsey Nov 2025 displacement estimates · Goldman Sachs labor forecasts ·
-    Crunchbase 2025 market concentration · OpenSecrets lobbying data (OpenAI 7x in 1yr; Big Tech $400K/day H1 2025) ·
-    UBS Wealth Report 2024 (global Gini ~0.88) ·
-    Ken Goldberg / UC Berkeley robotics skepticism (blue-collar uncertainty) ·
-    80,000 Hours power concentration profile.<br><br>
-    Built to accompany <em>The Wrong Conversation</em> (2025).
-    Model assumptions and limitations documented in the essay.
-    All parameters adjustable above.
-  </div>
-
-</div><!-- /page -->
-
-<script>
-// ============================================================
-// CONSTANTS & HELPERS
-// ============================================================
-const START = 2025, MAXY = 20;
-const SCENS = {
-  yours:     { wcRate:0.85, wcYrs:2,  bcRate:0.60, bcYrs:5,  rdFB:0.55, doubleYrs:7/12,  nLabs:3 },
-  amodei:    { wcRate:0.50, wcYrs:5,  bcRate:0.30, bcYrs:10, rdFB:0.35, doubleYrs:7/12,  nLabs:3 },
-  consensus: { wcRate:0.25, wcYrs:8,  bcRate:0.15, bcYrs:15, rdFB:0.15, doubleYrs:14/12, nLabs:5 }
-};
-const interventions = { oss:false, ubi:false, reg:false, tax:false, intl:false, early:false };
-
-function gp(id) { return parseFloat(document.getElementById(id).value); }
-function mkL(n) { return Array.from({length:n+1},(_,i)=>(START+i)+''); }
-
-// ============================================================
-// CORE SIMULATION
-// ============================================================
-function simConcentration(cfg, n) {
-  const wcRate   = cfg.wcRate   ?? gp('pWC');
-  const bcRate   = cfg.bcRate   ?? gp('pBC');
-  const wcYrs    = cfg.wcYrs    ?? 2;
-  const bcYrs    = cfg.bcYrs    ?? 5;
-  const rdFB     = cfg.rdFB     ?? gp('pRD');
-  const dblYrs   = cfg.doubleYrs?? gp('pDouble')/12;
-  const nLabs    = cfg.nLabs    ?? 3;
-
-  const dispWC = y => Math.min(wcRate, wcRate/(1+Math.exp(-2.8*(y-wcYrs*0.6))));
-  const dispBC = y => Math.min(bcRate, bcRate/(1+Math.exp(-1.8*(y-bcYrs*0.5))));
-
-  let labShare=0.08, workerShare=0.55, capShare=0.37;
-  let cap1=1.0, cap2=0.80;
-  let gini=0.88;
-  const r = { lab:[8], wk:[55], cap:[37], wc:[0], bc:[0],
-              c1:[1], c2:[0.8], gini:[0.88], crisis:null };
-
-  for (let y=1; y<=n; y++) {
-    const wc = dispWC(y), bc = dispBC(y);
-    const totalDisp = Math.min(0.97, wc*0.6 + bc*0.4);
-    workerShare = Math.max(0.01, 0.55*(1-totalDisp));
-
-    const baseG = Math.pow(2, 1/dblYrs);
-    cap1 *= baseG * (1 + rdFB*Math.log1p(cap1)*0.10);
-    cap2 *= baseG * (1 + rdFB*0.5*Math.log1p(cap2)*0.05);
-    const ms1 = cap1/(cap1 + cap2*(nLabs-1));
-    const laborCap = (0.55-workerShare)*ms1*0.75;
-    labShare = Math.min(0.95, labShare + laborCap*(1-labShare));
-    capShare = Math.max(0.01, 1-labShare-workerShare);
-    gini = Math.min(0.999, gini + ms1*0.025*(1-gini));
-
-    r.lab.push(+(labShare*100).toFixed(1));
-    r.wk.push(+(workerShare*100).toFixed(1));
-    r.cap.push(+(capShare*100).toFixed(1));
-    r.wc.push(+(wc*100).toFixed(1));
-    r.bc.push(+(bc*100).toFixed(1));
-    r.c1.push(+Math.min(cap1,1e7).toFixed(2));
-    r.c2.push(+Math.min(cap2,1e7).toFixed(2));
-    r.gini.push(+gini.toFixed(3));
-    if (!r.crisis && labShare>0.60) r.crisis = y;
-  }
-  return r;
-}
-
-function simReaction(iCfg, n) {
-  const aware     = iCfg?.aware     ?? gp('pAware');
-  const effect    = iCfg?.effect    ?? gp('pEffect');
-  const polLag    = iCfg?.lag       ?? gp('pPolLag');
-  const awareLag  = iCfg?.awareLag  ?? gp('pAwareLag');
-  const captureGR = iCfg?.capture   ?? gp('pCapture');
-  const capCeil   = iCfg?.ceil      ?? gp('pCeil');
-  const iStart    = iCfg?.iStart    ?? 0;
-  const ossF      = (iCfg?.oss||iCfg?.early) ? 0.6 : 1.0;
-  const rdSlowF   = (iCfg?.reg||iCfg?.early) ? 0.7 : 1.0;
-  const taxF      = (iCfg?.tax||iCfg?.early) ? 0.8 : 1.0;
-  const ubiFloor  = (iCfg?.ubi||iCfg?.early) ? 0.08 : 0;
-  const extraLabs = (iCfg?.intl||iCfg?.early) ? 2 : 0;
-
-  const rdFB   = gp('pRD') * rdSlowF;
-  const dblYrs = gp('pDouble')/12;
-  const nLabs  = 3 + extraLabs;
-  const wcRate = gp('pWC'), bcRate = gp('pBC');
-  const dispWC = y => Math.min(wcRate, wcRate/(1+Math.exp(-2.8*(y-2*0.6))));
-  const dispBC = y => Math.min(bcRate, bcRate/(1+Math.exp(-1.8*(y-5*0.5))));
-
-  let labShare=0.08, workerShare=0.55;
-  let cap1=1.0, cap2=0.80;
-  let pAwareness=0.02, pPolicy=0, lobbyPwr=0.02, crisis=null;
-
-  const r = { lab:[8], wk:[55], aware:[2], policy:[0], capture:[0], net:[0], crisis:null };
-
-  for (let y=1; y<=n; y++) {
-    const ySL = Math.max(0, y - gp('pAwareLag'));
-    const wc = dispWC(y), bc = dispBC(y);
-    const totalDisp = Math.min(0.97, wc*0.6 + bc*0.4);
-    workerShare = Math.max(ubiFloor, 0.55*(1-totalDisp));
-
-    const baseG = Math.pow(2, 1/dblYrs) * ossF;
-    cap1 *= baseG * (1 + rdFB*Math.log1p(cap1)*0.10);
-    cap2 *= baseG * (1 + rdFB*0.5*Math.log1p(cap2)*0.05);
-    const ms1 = cap1/(cap1+cap2*(nLabs-1));
-    const laborCap = (0.55-workerShare)*ms1*0.75;
-    labShare = Math.min(0.95, labShare + laborCap*(1-labShare));
-
-    const active = Math.max(0, y-iStart) > 0;
-    const dispShock = Math.min(1,(dispWC(ySL)+dispBC(ySL))*0.8);
-    pAwareness += ((dispShock*aware) - pAwareness)*0.35*(active?1:0);
-    pAwareness = Math.min(1, pAwareness);
-
-    const pTarget = Math.max(0, pAwareness - polLag/MAXY*2)*effect;
-    pPolicy += (pTarget-pPolicy)*0.25*(y>Math.max(0,polLag-0.5)?1:0);
-    pPolicy = Math.min(1, Math.max(0, pPolicy));
-
-    lobbyPwr = Math.min(1, 0.02*Math.pow(captureGR,y)*labShare*3);
-    const eliteCapture = Math.min(capCeil, lobbyPwr*capCeil*1.4);
-    const netReact = Math.max(0, pPolicy*(1-eliteCapture));
-
-    labShare = Math.max(0.08, labShare - netReact*labShare*0.18);
-
-    r.lab.push(+(labShare*100).toFixed(1));
-    r.wk.push(+(workerShare*100).toFixed(1));
-    r.aware.push(+(pAwareness*100).toFixed(1));
-    r.policy.push(+(pPolicy*100).toFixed(1));
-    r.capture.push(+(eliteCapture*100).toFixed(1));
-    r.net.push(+(netReact*100).toFixed(1));
-    if (!r.crisis && labShare>0.60) r.crisis = y;
-  }
-  return r;
-}
-
-// ============================================================
-// CHART REGISTRY
-// ============================================================
-const charts = {};
-function mkChart(id, cfg) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-  charts[id] = new Chart(document.getElementById(id), cfg);
-  return charts[id];
-}
-function baseOpts(yLabel, yMin=0, yMax=100) {
-  return {
-    responsive:true, maintainAspectRatio:false, animation:false,
-    plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
-    scales:{
-      x:{ ticks:{font:{size:10}, maxTicksLimit:6}, grid:{color:'rgba(128,128,128,0.08)'} },
-      y:{ min:yMin, max:yMax, ticks:{font:{size:10}, callback:v=>v+yLabel},
-          grid:{color:'rgba(128,128,128,0.08)'} }
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
     }
-  };
-}
 
-// ============================================================
-// TAB 1: CONCENTRATION
-// ============================================================
-let run1=false, tmr1=null, yr1=0;
-
-function drawConc(r, n) {
-  const lbs = mkL(n);
-  mkChart('cPow1',{type:'line',data:{labels:lbs,datasets:[
-    {data:r.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(216,90,48,0.06)'},
-    {data:r.cap,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:r.wk, borderColor:'#888780',borderWidth:2,pointRadius:0,tension:0.4,fill:true,backgroundColor:'rgba(136,135,128,0.06)'},
-    {data:Array(n+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
-  ]},options:baseOpts('%')});
-
-  mkChart('cDisp1',{type:'line',data:{labels:lbs,datasets:[
-    {data:r.wc,borderColor:'#D85A30',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:r.bc,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-  ]},options:baseOpts('%')});
-
-  const logC1=r.c1.map(v=>+Math.log10(Math.max(v,0.01)).toFixed(2));
-  const logC2=r.c2.map(v=>+Math.log10(Math.max(v,0.01)).toFixed(2));
-  mkChart('cCap1',{type:'line',data:{labels:lbs,datasets:[
-    {data:logC1,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:logC2,borderColor:'#D85A30',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:0.4,fill:false},
-  ]},options:{...baseOpts(''),responsive:true,maintainAspectRatio:false,animation:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'10^'+c.raw+'x baseline'}}},
-    scales:{x:{ticks:{font:{size:10},maxTicksLimit:6},grid:{color:'rgba(128,128,128,0.08)'}},
-            y:{ticks:{font:{size:10},callback:v=>'10^'+v},grid:{color:'rgba(128,128,128,0.08)'}}}
-  }});
-}
-
-function updConc(r, n) {
-  document.getElementById('yr1').textContent = ''+(START+n);
-  const lab=r.lab[n], wk=r.wk[n], g=r.gini[n];
-  const el = id => document.getElementById(id);
-  el('mLab1').textContent=lab.toFixed(1)+'%';
-  el('mLab1').className='mv'+(lab>60?' red':lab>35?' amber':'');
-  el('mWk1').textContent=wk.toFixed(1)+'%';
-  el('mWk1').className='mv'+(wk<5?' red':wk<20?' amber':' grn');
-  el('mGini1').textContent=g.toFixed(3);
-  el('mGini1').className='mv'+(g>0.96?' red':g>0.93?' amber':'');
-  const cr = simConcentration({},MAXY).crisis;
-  el('mCrisis1').textContent=cr?(START+cr)+''  :'>2045';
-  el('mCrisis1').className='mv'+(cr&&cr<8?' red':cr&&cr<14?' amber':' grn');
-  el('al-autocracy').className='alert red'+(lab>60?' show':'');
-  el('al-irreversible').className='alert amber'+(wk<5?' show':'');
-}
-
-function initConc() {
-  const r = simConcentration({}, MAXY);
-  drawConc(r, MAXY);
-  updConc(r, MAXY);
-}
-
-function reset1() {
-  clearInterval(tmr1); run1=false; yr1=0;
-  document.getElementById('btnRun1').textContent='Run';
-  initConc();
-}
-
-document.getElementById('btnRun1').addEventListener('click',()=>{
-  if (run1) { clearInterval(tmr1); run1=false; document.getElementById('btnRun1').textContent='Run'; return; }
-  run1=true; document.getElementById('btnRun1').textContent='Pause';
-  yr1=0;
-  tmr1=setInterval(()=>{
-    yr1++;
-    const r=simConcentration({},yr1);
-    drawConc(r,yr1); updConc(r,yr1);
-    if(yr1>=MAXY){clearInterval(tmr1);run1=false;document.getElementById('btnRun1').textContent='Run';}
-  },140);
-});
-
-// ============================================================
-// TAB 2: REACTION
-// ============================================================
-let run2=false, tmr2=null, yr2=0;
-
-function drawReact(r, n) {
-  const lbs=mkL(n);
-  mkChart('cRace',{type:'line',data:{labels:lbs,datasets:[
-    {data:r.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
-    {data:r.wk, borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:r.net,borderColor:'#1D9E75',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:Array(n+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
-  ]},options:baseOpts('%')});
-
-  mkChart('cAnat',{type:'line',data:{labels:lbs,datasets:[
-    {data:r.aware,  borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:r.policy, borderColor:'#1D9E75',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:r.capture,borderColor:'#D85A30',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-  ]},options:baseOpts('%')});
-}
-
-function updReact(r, n) {
-  document.getElementById('yr2').textContent=''+(START+n);
-  const aware=r.aware[n]??0, pol=r.policy[n]??0, cap=r.capture[n]??0, net=r.net[n]??0;
-  const setM=(id,vid,v,col)=>{
-    document.getElementById(id).style.width=Math.min(100,v)+'%';
-    document.getElementById(id).style.background=col;
-    document.getElementById(vid).textContent=Math.round(v)+'%';
-  };
-  setM('mAware','vmAware',aware,'#3266ad');
-  setM('mPolicy','vmPolicy',pol,'#1D9E75');
-  setM('mElite','vmElite',cap,'#D85A30');
-  setM('mNet','vmNet',net,'#1D9E75');
-
-  if (n>=MAXY) {
-    const rFull=simReaction({},MAXY);
-    const finalLab=rFull.lab[MAXY];
-    ['out-success','out-fail','out-marginal'].forEach(id=>document.getElementById(id).className='outcome '+(id.includes('success')?'success':id.includes('fail')?'fail':'marginal'));
-    if (!rFull.crisis) {
-      document.getElementById('out-success').className='outcome success show';
-      document.getElementById('out-success-text').textContent=`Societal reaction held the top-lab power share to ${finalLab.toFixed(1)}% — below the 60% threshold across the full 20-year window.`;
-    } else if (rFull.crisis<=10) {
-      document.getElementById('out-fail').className='outcome fail show';
-      document.getElementById('out-fail-text').textContent=`Crisis reached in ${START+rFull.crisis}. Elite capture neutralised reaction before policy could bite. Reducing lobbying growth rate or cutting political lag are the highest-leverage interventions.`;
-    } else {
-      document.getElementById('out-marginal').className='outcome marginal show';
-      document.getElementById('out-marginal-text').textContent=`Crisis reached late (${START+rFull.crisis}) — reaction held for most of the window but eventually lost the race. Increasing policy effectiveness above 0.65 or cutting political lag below 1.5yr shifts this to success.`;
+    function smoothstep(value) {
+      const x = clamp(value, 0, 1);
+      return x * x * (3 - 2 * x);
     }
-  }
-}
 
-function initReact() {
-  const r=simReaction({},MAXY);
-  drawReact(r,MAXY); updReact(r,MAXY);
-}
-
-function reset2() {
-  clearInterval(tmr2);run2=false;yr2=0;
-  document.getElementById('btnRun2').textContent='Run';
-  ['out-success','out-fail','out-marginal'].forEach(id=>document.getElementById(id).className='outcome '+(id.includes('success')?'success':id.includes('fail')?'fail':'marginal'));
-  initReact();
-}
-
-document.getElementById('btnRun2').addEventListener('click',()=>{
-  if(run2){clearInterval(tmr2);run2=false;document.getElementById('btnRun2').textContent='Run';return;}
-  run2=true;document.getElementById('btnRun2').textContent='Pause';yr2=0;
-  tmr2=setInterval(()=>{
-    yr2++;
-    const r=simReaction({},yr2);
-    drawReact(r,yr2);updReact(r,yr2);
-    if(yr2>=MAXY){clearInterval(tmr2);run2=false;document.getElementById('btnRun2').textContent='Run';}
-  },140);
-});
-
-// ============================================================
-// TAB 3: INTERVENTIONS
-// ============================================================
-function toggleI(k){
-  interventions[k]=!interventions[k];
-  document.getElementById('i-'+k).className='interv'+(interventions[k]?' on':'');
-}
-function clearInterv(){
-  Object.keys(interventions).forEach(k=>{interventions[k]=false;document.getElementById('i-'+k).className='interv';});
-  document.getElementById('interv-note').textContent='Select interventions above, then click Compare.';
-  if(charts['cInterv']){charts['cInterv'].destroy();delete charts['cInterv'];}
-}
-function runInterv(){
-  const base=simReaction({},MAXY);
-  const withI=simReaction({...interventions},MAXY);
-  const lbs=mkL(MAXY);
-  mkChart('cInterv',{type:'line',data:{labels:lbs,datasets:[
-    {data:base.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
-    {data:withI.lab,borderColor:'#3266ad',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
-    {data:Array(MAXY+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
-  ]},options:{...baseOpts('%'),animation:{duration:500}}});
-
-  const active=Object.entries(interventions).filter(([,v])=>v).map(([k])=>k);
-  const bc=base.crisis?`Base: crisis ${START+base.crisis}.`:'Base: no crisis in window.';
-  const ic=withI.crisis?`With interventions: crisis ${START+withI.crisis}.`:'With interventions: no crisis in window.';
-  const delay=base.crisis&&withI.crisis?` ${withI.crisis-base.crisis}-year delay.`:(!withI.crisis&&base.crisis)?' Interventions prevent crisis entirely in window.':'';
-  document.getElementById('interv-note').textContent=active.length?bc+' '+ic+delay:'Select at least one intervention.';
-}
-
-// ============================================================
-// TAB 4: SCENARIOS
-// ============================================================
-function buildScenCharts(){
-  const ry=simConcentration(SCENS.yours,MAXY);
-  const ra=simConcentration(SCENS.amodei,MAXY);
-  const rc=simConcentration(SCENS.consensus,MAXY);
-  const lbs=mkL(MAXY);
-  mkChart('cScen1',{type:'line',data:{labels:lbs,datasets:[
-    {data:ry.lab,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
-    {data:ra.lab,borderColor:'#E29B00',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:rc.lab,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:Array(MAXY+1).fill(60),borderColor:'#cccccc',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false},
-  ]},options:baseOpts('%')});
-  mkChart('cScen2',{type:'line',data:{labels:lbs,datasets:[
-    {data:ry.wk,borderColor:'#D85A30',borderWidth:2.5,pointRadius:0,tension:0.4,fill:false},
-    {data:ra.wk,borderColor:'#E29B00',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-    {data:rc.wk,borderColor:'#3266ad',borderWidth:2,pointRadius:0,tension:0.4,fill:false},
-  ]},options:baseOpts('%',0,60)});
-}
-function setScen(s){
-  ['yours','amodei','consensus'].forEach(k=>document.getElementById('sc-'+k).className='scen'+(k===s?' active':''));
-}
-
-// ============================================================
-// TAB 5: WINDOW
-// ============================================================
-function buildWindowCharts(){
-  const startYrs=[0,1,2,3,4,5,6,7,8];
-  const lbs=startYrs.map(y=>y===0?'Now':`Yr ${y} (${START+y})`);
-  const crisisYrs=startYrs.map(sy=>{
-    const r=simReaction({iStart:sy},MAXY);
-    return r.crisis?START+r.crisis:MAXY+START+1;
-  });
-  const colors=crisisYrs.map(cy=>cy>START+MAXY?'#1D9E75':cy<START+10?'#D85A30':'#E29B00');
-
-  mkChart('cWindow',{type:'bar',data:{labels:lbs,datasets:[{
-    data:crisisYrs.map(cy=>Math.min(cy,START+MAXY+1)),
-    backgroundColor:colors,borderWidth:0,borderRadius:4
-  }]},options:{
-    responsive:true,maintainAspectRatio:false,animation:{duration:500},
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw>START+MAXY?'No crisis in window':'Crisis year: '+c.raw}}},
-    scales:{x:{ticks:{font:{size:10}}},
-            y:{min:START,max:START+MAXY+2,ticks:{font:{size:10},callback:v=>v<=START+MAXY?v:'No crisis'},grid:{color:'rgba(128,128,128,0.08)'}}}
-  }});
-
-  const params=['aware','effect','lag','ceil'];
-  const pLabs=['Awareness speed','Policy effect','Political lag','Capture ceiling'];
-  const dsColors=['#3266ad','#1D9E75','#E29B00','#D85A30'];
-  const datasets=params.map((p,i)=>{
-    const data=startYrs.map(sy=>{
-      const base=simReaction({iStart:sy},MAXY);
-      const bCr=base.crisis||MAXY+1;
-      const overrides={aware:gp('pAware'),effect:gp('pEffect'),lag:gp('pPolLag'),ceil:gp('pCeil')};
-      overrides[p]=p==='lag'?gp('pPolLag')*0.5:p==='ceil'?gp('pCeil')*0.5:Math.min(1,overrides[p]*1.5);
-      const alt=simReaction({iStart:sy,...overrides},MAXY);
-      return Math.abs((alt.crisis||MAXY+1)-bCr);
-    });
-    return {label:pLabs[i],data,borderColor:dsColors[i],borderWidth:2,pointRadius:3,tension:0.4,fill:false};
-  });
-  mkChart('cSens2',{type:'line',data:{labels:lbs,datasets},options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>c.dataset.label+': ±'+c.raw+' yr'}}},
-    scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:v=>'±'+v+' yr'},grid:{color:'rgba(128,128,128,0.08)'}}}
-  }});
-
-  const firstSafe=startYrs.find((sy,i)=>crisisYrs[i]>START+MAXY);
-  document.getElementById('window-note').innerHTML=firstSafe!==undefined
-    ?`Under current parameters, intervention starting in <b>${START+firstSafe}</b> or earlier avoids crisis in the 20-year window. Each year of delay reduces effectiveness non-linearly because elite capture compounds. After ~${firstSafe+START+1}, no single-parameter improvement is sufficient.`
-    :`Under current parameters, reaction is insufficient at <i>any</i> start year in the window. Reducing the capture ceiling below ${(gp('pCeil')*0.6).toFixed(2)} AND cutting political lag below 1.5yr are both necessary.`;
-}
-
-// ============================================================
-// TAB 6: SENSITIVITY
-// ============================================================
-function buildSensChart(){
-  const paramDefs=[
-    {label:'Capability doubling time',key:'pDouble',dir:-1,lo:v=>v*0.5,hi:v=>Math.min(24,v*1.5)},
-    {label:'R&D feedback strength',  key:'pRD',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(1,v*1.5)},
-    {label:'WC displacement speed',  key:'pWC',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(1,v*1.5)},
-    {label:'BC displacement speed',  key:'pBC',    dir:1, lo:v=>v*0.5,hi:v=>Math.min(0.8,v*1.5)},
-    {label:'Political lag',           key:'pPolLag',dir:-1,lo:v=>v*0.5,hi:Math.min(6,v=>v*1.5)},
-    {label:'Elite capture ceiling',   key:'pCeil',  dir:1, lo:v=>v*0.5,hi:v=>Math.min(0.9,v*1.5)},
-  ];
-  const results=paramDefs.map(pd=>{
-    const base=simConcentration({},MAXY);
-    const bCr=base.crisis||MAXY+1;
-    const cur=gp(pd.key);
-    const cfgLo={},cfgHi={};
-    const keyMap={pDouble:'doubleYrs',pRD:'rdFB',pWC:'wcRate',pBC:'bcRate',pPolLag:'polLag',pCeil:'capCeil'};
-    const mk=v=>pd.key==='pDouble'?v/12:v;
-    // use reaction sim for policy params, concentration for others
-    if(pd.key==='pPolLag'||pd.key==='pCeil'){
-      const rLo=simReaction({lag:pd.lo(cur)},MAXY);
-      const rHi=simReaction({lag:pd.hi(cur)},MAXY);
-      const impact=Math.abs((rLo.crisis||MAXY+1)-(rHi.crisis||MAXY+1));
-      return {...pd,impact};
-    } else {
-      const ovLo={[keyMap[pd.key]]:mk(pd.lo(cur))};
-      const ovHi={[keyMap[pd.key]]:mk(pd.hi(cur))};
-      const rLo=simConcentration(ovLo,MAXY);
-      const rHi=simConcentration(ovHi,MAXY);
-      const impact=Math.abs((rLo.crisis||MAXY+1)-(rHi.crisis||MAXY+1));
-      return {...pd,impact};
+    function formatPct(value) {
+      return `${value.toFixed(1)}%`;
     }
-  });
-  const maxI=Math.max(...results.map(r=>r.impact),1);
-  mkChart('cSens1',{type:'bar',data:{
-    labels:results.map(r=>r.label),
-    datasets:[{data:results.map(r=>r.impact),
-      backgroundColor:['#D85A30','#3266ad','#E29B00','#1D9E75','#888780','#D85A30'].map((c,i)=>c),
-      borderWidth:0,borderRadius:4}]
-  },options:{
-    indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'±'+c.raw+' years shift in crisis timing'}}},
-    scales:{x:{ticks:{font:{size:10},callback:v=>'±'+v+' yr'},grid:{color:'rgba(128,128,128,0.08)'}},
-            y:{ticks:{font:{size:11}},grid:{display:false}}}
-  }});
 
-  document.getElementById('sens-grid').innerHTML=results.map(r=>`
-    <div class="sens-row">
-      <span>${r.label}</span>
-      <div class="sens-bar-bg"><div class="sens-bar" style="width:${Math.round(r.impact/maxI*100)}%;background:${r.dir>0?'#D85A30':'#3266ad'}"></div></div>
-      <span>±${r.impact} yr</span>
-    </div>`).join('');
-}
+    function formatControlPct(value) {
+      return `${value.toFixed(1)}%`;
+    }
 
-// ============================================================
-// SLIDER WIRING
-// ============================================================
-const sliders=[
-  ['pDouble','vDouble',v=>v+' mo'],
-  ['pRD','vRD',v=>(+v).toFixed(2)],
-  ['pWC','vWC',v=>(+v).toFixed(2)],
-  ['pBC','vBC',v=>(+v).toFixed(2)],
-  ['pAwareLag','vAwareLag',v=>v+'yr'],
-  ['pPolLag','vPolLag',v=>v+'yr'],
-  ['pEffect','vEffect',v=>(+v).toFixed(2)],
-  ['pCapture','vCapture',v=>(+v).toFixed(2)+'x'],
-  ['pCeil','vCeil',v=>(+v).toFixed(2)],
-  ['pAware','vAware',v=>(+v).toFixed(2)],
-];
-sliders.forEach(([id,vid,fmt])=>{
-  const el=document.getElementById(id);
-  if(el) el.addEventListener('input',e=>{ document.getElementById(vid).textContent=fmt(e.target.value); });
-});
+    function formatAxisValue(value) {
+      if (value >= 100) return `${Math.round(value)}`;
+      if (value >= 10) return value.toFixed(1);
+      return value.toFixed(2);
+    }
 
-// ============================================================
-// TAB SWITCHING
-// ============================================================
-const tabIds=['concentration','reaction','interventions','scenarios','window','sensitivity','timeline'];
-const built={};
-function sw(t){
-  tabIds.forEach(id=>{
-    document.getElementById('p-'+id).style.display=id===t?'block':'none';
-  });
-  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabIds[i]===t));
-  if(!built[t]){
-    built[t]=true;
-    if(t==='reaction') initReact();
-    if(t==='interventions') runInterv();
-    if(t==='scenarios') buildScenCharts();
-    if(t==='window') buildWindowCharts();
-    if(t==='sensitivity') buildSensChart();
-  }
-}
+    function formatSupportValue(value) {
+      const abs = Math.abs(value);
+      if (abs >= 1e12) return `${(value / 1e12).toFixed(1)}T`;
+      if (abs >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
+      if (abs >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+      if (abs >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+      if (abs >= 100) return `${value.toFixed(0)}`;
+      if (abs >= 10) return `${value.toFixed(1)}`;
+      return `${value.toFixed(2)}`;
+    }
 
-// ============================================================
-// INIT
-// ============================================================
-initConc();
-</script>
+    function IconShell({ children }) {
+      return <div className="icon-shell">{children}</div>;
+    }
+
+    function CrownIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 18h18" />
+          <path d="M5 18 3.5 8.5l5.5 4 3-6 3 6 5.5-4L19 18" />
+        </svg>
+      );
+    }
+
+    function TrendIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 17l6-6 4 4 7-8" />
+          <path d="M14 7h6v6" />
+        </svg>
+      );
+    }
+
+    function FactoryIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 21h18" />
+          <path d="M5 21V9l5 3V9l5 3V5l4 2v14" />
+        </svg>
+      );
+    }
+
+    function ShieldIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+          <path d="M9.5 12.5 11 14l4-4" />
+        </svg>
+      );
+    }
+
+    function CpuIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="7" y="7" width="10" height="10" rx="2" />
+          <path d="M12 1v3M12 20v3M4 12H1M23 12h-3M5 5 3 3M21 21l-2-2M19 5l2-2M5 19l-2 2" />
+        </svg>
+      );
+    }
+
+    function UsersIcon() {
+      return (
+        <svg className="lucide" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      );
+    }
+
+    function buildPowerState(step, ubiRatePercent, publicOwnershipPercent) {
+      const ubiRate = clamp(ubiRatePercent / 100, 0, 1);
+      const publicOwnership = clamp(publicOwnershipPercent / 100, 0, 1);
+      const laborRetention = Math.exp(-step / 58);
+      const socialContractStrength = Math.exp(-step / 90);
+      const grossTakeoffAmplitude = Math.max(0, Math.pow(1 + AGI_GROWTH_RATE, step / TAKEOFF_TIME_SCALE) - 1);
+      const priorGrossTakeoffAmplitude = Math.max(0, Math.pow(1 + AGI_GROWTH_RATE, Math.max(step - 1, 0) / TAKEOFF_TIME_SCALE) - 1);
+      const concentrationExponent = 18 + 56 * (1 - Math.exp(-step / 110));
+      const concentrationCenter = 0.986 + 0.011 * (1 - Math.exp(-step / 170));
+      const concentrationSteepness = 90 + 260 * (1 - Math.exp(-step / 140));
+      const privateTakeoffAmplitude = (1 - publicOwnership) * Math.max(
+        0,
+        Math.pow(1 + AGI_GROWTH_RATE * (1 - ubiRate), step / TAKEOFF_TIME_SCALE) - 1
+      );
+      const publicOwnedTakeoffAmplitude = publicOwnership * grossTakeoffAmplitude;
+      const privateGrossGainAmplitude = (1 - publicOwnership) * Math.max(0, grossTakeoffAmplitude - priorGrossTakeoffAmplitude);
+
+      const rawRows = PERCENTILES.map((percentile) => {
+        const x = percentile / 100;
+        const physical = 0.026;
+        const laborBase =
+          0.048 +
+          0.07 * Math.pow(x, 0.76) +
+          0.028 / (1 + Math.exp(-10 * (x - 0.72)));
+        const labor = laborBase * laborRetention;
+        const baseCapital =
+          0.0018 +
+          0.0035 * Math.pow(x, 2.5) +
+          0.011 * Math.pow(x, 10) +
+          0.08 / (1 + Math.exp(-60 * (x - 0.992)));
+        const takeoffShape =
+          0.00015 * Math.pow(x, 8) +
+          0.006 * Math.pow(x, concentrationExponent) +
+          0.38 / (1 + Math.exp(-concentrationSteepness * (x - concentrationCenter)));
+
+        return {
+          percentile,
+          physical,
+          labor,
+          baseCapital,
+          takeoffShape,
+        };
+      });
+
+      const takeoffShapeTotal = rawRows.reduce((sum, row) => sum + row.takeoffShape, 0);
+      const publicOwnershipStockTotal = publicOwnedTakeoffAmplitude * takeoffShapeTotal;
+      const ubiFlowTotal = ubiRate * privateGrossGainAmplitude * takeoffShapeTotal;
+      const socialContractFlowTotal = socialContractStrength * privateGrossGainAmplitude * takeoffShapeTotal * 0.18;
+      const publicCapitalPerPerson = publicOwnershipStockTotal / PERCENTILES.length;
+
+      const rows = rawRows.map((row) => {
+        const privateCapital = row.baseCapital + row.takeoffShape * privateTakeoffAmplitude;
+        const publicCapital = publicCapitalPerPerson;
+        const total = row.physical + row.labor + publicCapital + privateCapital;
+
+        return {
+          percentile: row.percentile,
+          physical: row.physical,
+          labor: row.labor,
+          publicCapital,
+          capital: privateCapital,
+          total,
+        };
+      });
+
+      const sum = (items, accessor) => items.reduce((acc, item) => acc + accessor(item), 0);
+      const elite = rows.filter((row) => row.percentile >= ELITE_CUTOFF);
+      const common = rows.filter((row) => row.percentile < ELITE_CUTOFF);
+      const fullTotal = sum(rows, (row) => row.total);
+
+      return {
+        rows,
+        totals: {
+          commonShare: fullTotal ? (sum(common, (row) => row.total) / fullTotal) * 100 : 0,
+          eliteShare: fullTotal ? (sum(elite, (row) => row.total) / fullTotal) * 100 : 0,
+          physicalShare: fullTotal ? (sum(rows, (row) => row.physical) / fullTotal) * 100 : 0,
+          laborShare: fullTotal ? (sum(rows, (row) => row.labor) / fullTotal) * 100 : 0,
+          publicCapitalShare: fullTotal ? (sum(rows, (row) => row.publicCapital) / fullTotal) * 100 : 0,
+          capitalShare: fullTotal ? (sum(rows, (row) => row.capital) / fullTotal) * 100 : 0,
+          ubiSupportTotal: ubiFlowTotal,
+          socialContractSupportTotal: socialContractFlowTotal,
+          laborRatio: laborRetention,
+          fullTotal,
+        },
+      };
+    }
+
+    function areaPath(data, xScale, yScale, topAccessor, bottomAccessor) {
+      if (!data.length) return "";
+      const top = data
+        .map((d, index) => `${index === 0 ? "M" : "L"} ${xScale(d.percentile)} ${yScale(topAccessor(d))}`)
+        .join(" ");
+      const bottom = [...data]
+        .reverse()
+        .map((d) => `L ${xScale(d.percentile)} ${yScale(bottomAccessor(d))}`)
+        .join(" ");
+      return `${top} ${bottom} Z`;
+    }
+
+    function linePath(data, xScale, yScale, accessor) {
+      return data
+        .map((d, index) => `${index === 0 ? "M" : "L"} ${xScale(d.percentile)} ${yScale(accessor(d))}`)
+        .join(" ");
+    }
+
+    function findTaxRateForTargetEliteShare(step, publicOwnershipPercent, targetEliteShare) {
+      const futureStep = step + POWER_BREAK_EVEN_HORIZON;
+      const shareAt = (rate) =>
+        buildPowerState(futureStep, rate, publicOwnershipPercent).totals.eliteShare;
+
+      const lowShare = shareAt(0);
+      if (lowShare <= targetEliteShare) return 0;
+
+      const highShare = shareAt(100);
+      if (highShare > targetEliteShare) return 100;
+
+      let low = 0;
+      let high = 100;
+      for (let i = 0; i < 24; i += 1) {
+        const mid = (low + high) / 2;
+        if (shareAt(mid) > targetEliteShare) {
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+      return high;
+    }
+
+    function findOwnershipPowerDriftBreakEvenRate(step, ubiRatePercent) {
+      const baseShare = buildPowerState(step, ubiRatePercent, 0).totals.eliteShare;
+      return findTaxRateForTargetEliteShare(step, 0, baseShare);
+    }
+
+    function computeTaxFirstAutoPolicy(step) {
+      const uncontrolledShare = buildPowerState(step, 0, 0).totals.eliteShare;
+      const publicControlStart = 45;
+      const noReturn = 50;
+      const approachTarget = 46;
+      const transitionTarget = 49.5;
+      const maxTaxCeiling = 35;
+      const stableOwnershipTarget = 70;
+
+      if (uncontrolledShare < publicControlStart) {
+        const targetEliteShare = Math.min(approachTarget, uncontrolledShare + 0.8);
+        const requiredTax = findTaxRateForTargetEliteShare(step, 0, targetEliteShare);
+        return {
+          phase: "tax-first",
+          effectiveUbiRate: Math.min(maxTaxCeiling, requiredTax),
+          effectivePublicOwnership: 0,
+          uncontrolledEliteShare: uncontrolledShare,
+          targetEliteShare,
+          ownershipTarget: 0,
+        };
+      }
+
+      const transitionProgress = smoothstep((uncontrolledShare - publicControlStart) / (noReturn - publicControlStart));
+      const targetEliteShare = publicControlStart + transitionProgress * (transitionTarget - publicControlStart);
+      const ownershipTarget = transitionProgress * stableOwnershipTarget;
+      const requiredOwnership = Math.max(ownershipTarget, 0);
+      const requiredTax = findTaxRateForTargetEliteShare(step, requiredOwnership, targetEliteShare);
+      const fadeTax = 1 - transitionProgress;
+
+      return {
+        phase: transitionProgress >= 0.98 ? "ownership" : "handoff",
+        effectiveUbiRate: Math.min(maxTaxCeiling, requiredTax) * fadeTax,
+        effectivePublicOwnership: requiredOwnership,
+        uncontrolledEliteShare: uncontrolledShare,
+        targetEliteShare,
+        ownershipTarget,
+      };
+    }
+
+    function App() {
+      const [time, setTime] = useState(0);
+      const [speed, setSpeed] = useState(8);
+      const [ubiRate, setUbiRate] = useState(0);
+      const [publicOwnership, setPublicOwnership] = useState(0);
+      const [playing, setPlaying] = useState(true);
+      const [autoPolicy, setAutoPolicy] = useState(false);
+
+      useEffect(() => {
+        if (!playing) return undefined;
+
+        const interval = setInterval(() => {
+          setTime((current) => current + Math.max(1, Math.round(speed)));
+        }, 160);
+
+        return () => clearInterval(interval);
+      }, [playing, speed]);
+
+      const autoPolicyPlan = useMemo(() => computeTaxFirstAutoPolicy(time), [time]);
+
+      const effectiveUbiRate = autoPolicy ? autoPolicyPlan.effectiveUbiRate : ubiRate;
+      const effectivePublicOwnership = autoPolicy ? autoPolicyPlan.effectivePublicOwnership : publicOwnership;
+
+      const state = useMemo(
+        () => buildPowerState(time, effectiveUbiRate, effectivePublicOwnership),
+        [time, effectiveUbiRate, effectivePublicOwnership]
+      );
+
+      const { rows: data, totals } = state;
+
+      const chart = useMemo(() => {
+        const width = 760;
+        const height = 460;
+        const margin = { top: 28, right: 24, bottom: 54, left: 72 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+        const peakTotal = Math.max(...data.map((row) => row.total));
+        const peakPressure = peakTotal / EARLY_ABSOLUTE_Y_MAX;
+        const peakPressureProgress = smoothstep((peakPressure - PEAK_PRESSURE_START) / (1 - PEAK_PRESSURE_START));
+        const lateLaborProgress = smoothstep((ADAPTIVE_LABOR_RATIO_THRESHOLD - totals.laborRatio) / ADAPTIVE_LABOR_RATIO_THRESHOLD);
+        const adaptiveProgress = Math.max(peakPressureProgress, lateLaborProgress);
+        const adaptiveTarget = Math.max(EARLY_ABSOLUTE_Y_MAX, peakTotal * 1.06);
+        const maxTotal = EARLY_ABSOLUTE_Y_MAX + (adaptiveTarget - EARLY_ABSOLUTE_Y_MAX) * adaptiveProgress;
+
+        const xScale = (percentile) => margin.left + (percentile / 100) * innerWidth;
+        const yScale = (value) => margin.top + innerHeight - (value / maxTotal) * innerHeight;
+
+        return {
+          width,
+          height,
+          margin,
+          innerWidth,
+          innerHeight,
+          maxTotal,
+          peakTotal,
+          adaptiveProgress,
+          xScale,
+          yScale,
+          physicalArea: areaPath(data, xScale, yScale, (d) => d.physical, () => 0),
+          laborArea: areaPath(
+            data,
+            xScale,
+            yScale,
+            (d) => d.physical + d.labor,
+            (d) => d.physical
+          ),
+          publicArea: areaPath(
+            data,
+            xScale,
+            yScale,
+            (d) => d.physical + d.labor + d.publicCapital,
+            (d) => d.physical + d.labor
+          ),
+          capitalArea: areaPath(
+            data,
+            xScale,
+            yScale,
+            (d) => d.total,
+            (d) => d.physical + d.labor + d.publicCapital
+          ),
+          totalLine: linePath(data, xScale, yScale, (d) => d.total),
+          publicLine: linePath(data, xScale, yScale, (d) => d.physical + d.labor + d.publicCapital),
+          laborLine: linePath(data, xScale, yScale, (d) => d.physical + d.labor),
+          physicalLine: linePath(data, xScale, yScale, (d) => d.physical),
+        };
+      }, [data, totals.laborRatio]);
+
+      const noReturnCrossed = totals.eliteShare >= 50;
+      const yTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ratio * chart.maxTotal);
+
+      return (
+        <main className="page">
+          <header className="hero">
+            <div className="eyebrow">
+              <CpuIcon />
+              Mental model of political economy under AGI
+            </div>
+            <h1>Power Concentration in the Age of AGI</h1>
+          </header>
+
+          <section className="layout">
+            <aside className="sidebar card">
+              <div>
+                <h2 className="section-title">The Four Assumptions</h2>
+              </div>
+
+              <div className="assumptions">
+                <div className="assumption">
+                  <IconShell><CrownIcon /></IconShell>
+                  <div>
+                    <h3>Egotism</h3>
+                    <p>Actors try to maximize their own power rather than naturally equalize society.</p>
+                  </div>
+                </div>
+                <div className="assumption">
+                  <IconShell><TrendIcon /></IconShell>
+                  <div>
+                    <h3>Recursion</h3>
+                    <p>Power compounds. Existing power makes the next increment easier to capture.</p>
+                  </div>
+                </div>
+                <div className="assumption">
+                  <IconShell><FactoryIcon /></IconShell>
+                  <div>
+                    <h3>Social Contract</h3>
+                    <p>While elites still depend on broad wellbeing, part of recursive capital is recycled back into society instead of staying fully concentrated.</p>
+                  </div>
+                </div>
+                <div className="assumption">
+                  <IconShell><ShieldIcon /></IconShell>
+                  <div>
+                    <h3>Constant Physical Power</h3>
+                    <p>Humans retain a shared floor of strike power, voting power, and physical disruption capacity, even if that floor becomes dwarfed by recursive capital.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="controls">
+                <div className="toggle">
+                  <div className="toggle-copy">
+                    <strong>Tax-First Auto Switch</strong>
+                    <span>
+                      Uses a simple safeguard heuristic: slow concentration with tax first, then ramp public ownership once the uncontrolled path gets close to the 50% line.
+                    </span>
+                    {autoPolicy ? (
+                      <span>
+                        Phase: {autoPolicyPlan.phase}. Uncontrolled elite share: {formatPct(autoPolicyPlan.uncontrolledEliteShare)}. Target share: {formatPct(autoPolicyPlan.targetEliteShare)}.
+                      </span>
+                    ) : null}
+                  </div>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={autoPolicy}
+                      onChange={(event) => setAutoPolicy(event.target.checked)}
+                    />
+                    <span className="track"></span>
+                  </label>
+                </div>
+
+                <div className="slider-shell">
+                  <div className="control-row">
+                    <strong>Simulation</strong>
+                    <span>T{time}</span>
+                  </div>
+                  <div className="button-row">
+                    <button
+                      type="button"
+                      className={`control-button ${playing ? "primary" : ""}`}
+                      onClick={() => setPlaying((value) => !value)}
+                    >
+                      {playing ? "Pause" : "Play"}
+                    </button>
+                    <button
+                      type="button"
+                      className="control-button"
+                      onClick={() => {
+                        setPlaying(false);
+                        setTime(0);
+                      }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                  <div className="control-row" style={{ marginTop: 10, marginBottom: 0 }}>
+                    <span>Speed</span>
+                    <span>{speed.toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="8"
+                    step="0.5"
+                    value={speed}
+                    onChange={(event) => setSpeed(Number(event.target.value))}
+                  />
+                </div>
+
+                <div className="slider-shell">
+                  <div className="control-row">
+                    <strong>UBI Tax Rate</strong>
+                    <span>{effectivePublicOwnership >= 100 ? "Inactive" : formatControlPct(effectiveUbiRate)}</span>
+                  </div>
+                  <div className="range-wrap">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={effectiveUbiRate}
+                      disabled={effectivePublicOwnership >= 100 || autoPolicy}
+                      onChange={(event) => setUbiRate(Number(event.target.value))}
+                    />
+                  </div>
+                  <div className="range-help">
+                    {effectivePublicOwnership >= 100
+                      ? "Full public ownership leaves no private AGI gains to tax."
+                      : autoPolicy
+                      ? `Auto switch is active. It uses tax to aim for a projected elite share of ${formatPct(autoPolicyPlan.targetEliteShare)} over the next ${POWER_BREAK_EVEN_HORIZON} ticks, then hands off to ownership near the threshold.`
+                      : "This slider taxes private AGI gains. It can slow concentration and sustain support, but it is not treated as a durable power fix by itself."}
+                  </div>
+                </div>
+
+                <div className="slider-shell">
+                  <div className="control-row">
+                    <strong>Public Ownership Share</strong>
+                    <span>{formatControlPct(effectivePublicOwnership)}</span>
+                  </div>
+                  <div className="range-wrap">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={effectivePublicOwnership}
+                      disabled={autoPolicy}
+                      onChange={(event) => setPublicOwnership(Number(event.target.value))}
+                    />
+                  </div>
+                  <div className="range-help">
+                    {autoPolicy
+                      ? `Auto switch is active. Ownership target for this phase: ${formatControlPct(autoPolicyPlan.ownershipTarget)}.`
+                      : "This is stock ownership of the AGI core. Higher values move more recursive AGI capital into the public layer and away from private concentration."}
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            <section className="chart-card card">
+              <div className="chart-head">
+                <div>
+                  <h2>Absolute Power Distribution</h2>
+                </div>
+                <div className="pill-group">
+                  <div className="pill"><span className="legend-dot" style={{ background: "var(--blue-deep)" }}></span>Physical power</div>
+                  <div className="pill"><span className="legend-dot" style={{ background: "var(--blue-light)" }}></span>Lifetime labor capital</div>
+                  <div className="pill"><span className="legend-dot" style={{ background: "#3f9a57" }}></span>Public AGI capital</div>
+                  <div className="pill"><span className="legend-dot" style={{ background: "var(--gold)" }}></span>Private recursive capital</div>
+                  <div className="pill"><UsersIcon /> Common people left</div>
+                  <div className="pill"><CpuIcon /> AGI owners right tail</div>
+                </div>
+              </div>
+
+              <div className="svg-wrap">
+                <svg viewBox={`0 0 ${chart.width} ${chart.height}`} role="img" aria-label="Stacked area chart of power concentration">
+                  <defs>
+                    <linearGradient id="physicalFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#2f66c4" stopOpacity="0.95" />
+                      <stop offset="100%" stopColor="#2554a4" stopOpacity="0.72" />
+                    </linearGradient>
+                    <linearGradient id="laborFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#b5d6ff" stopOpacity="0.95" />
+                      <stop offset="100%" stopColor="#86b7f6" stopOpacity="0.78" />
+                    </linearGradient>
+                    <linearGradient id="publicFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#7ecf93" stopOpacity="0.92" />
+                      <stop offset="100%" stopColor="#3f9a57" stopOpacity="0.78" />
+                    </linearGradient>
+                    <linearGradient id="goldFill" x1="0" x2="1" y1="0" y2="0">
+                      <stop offset="0%" stopColor="#d8b25d" stopOpacity="0.55" />
+                      <stop offset="55%" stopColor="#c39428" stopOpacity="0.75" />
+                      <stop offset="100%" stopColor="#8d6511" stopOpacity="0.97" />
+                    </linearGradient>
+                  </defs>
+
+                  <rect
+                    x={chart.xScale(ELITE_CUTOFF)}
+                    y={chart.margin.top}
+                    width={chart.xScale(100) - chart.xScale(ELITE_CUTOFF)}
+                    height={chart.innerHeight}
+                    fill="rgba(185, 139, 31, 0.08)"
+                    stroke="rgba(94, 67, 18, 0.14)"
+                    strokeDasharray="6 8"
+                  />
+
+                  {yTicks.map((tick, index) => (
+                    <g key={index}>
+                      <line
+                        x1={chart.margin.left}
+                        x2={chart.margin.left + chart.innerWidth}
+                        y1={chart.yScale(tick)}
+                        y2={chart.yScale(tick)}
+                        stroke="rgba(29,26,23,0.08)"
+                      />
+                      <text
+                        x={chart.margin.left - 14}
+                        y={chart.yScale(tick) + 4}
+                        textAnchor="end"
+                        fontSize="12"
+                        fill="var(--muted)"
+                      >
+                        {formatAxisValue(tick)}
+                      </text>
+                    </g>
+                  ))}
+
+                  {[0, 25, 50, 75, 100].map((tick) => (
+                    <g key={tick}>
+                      <line
+                        x1={chart.xScale(tick)}
+                        x2={chart.xScale(tick)}
+                        y1={chart.margin.top}
+                        y2={chart.margin.top + chart.innerHeight}
+                        stroke="rgba(29,26,23,0.05)"
+                      />
+                      <text
+                        x={chart.xScale(tick)}
+                        y={chart.margin.top + chart.innerHeight + 28}
+                        textAnchor="middle"
+                        fontSize="12"
+                        fill="var(--muted)"
+                      >
+                        {tick}
+                      </text>
+                    </g>
+                  ))}
+
+                  <path d={chart.physicalArea} fill="url(#physicalFill)" />
+                  <path d={chart.laborArea} fill="url(#laborFill)" />
+                  <path d={chart.publicArea} fill="url(#publicFill)" />
+                  <path d={chart.capitalArea} fill="url(#goldFill)" />
+                  <path d={chart.physicalLine} fill="none" stroke="rgba(23,67,140,0.92)" strokeWidth="2.1" />
+                  <path d={chart.laborLine} fill="none" stroke="rgba(96,146,222,0.82)" strokeWidth="2.2" />
+                  <path d={chart.publicLine} fill="none" stroke="rgba(63,154,87,0.84)" strokeWidth="2.2" />
+                  <path d={chart.totalLine} fill="none" stroke="rgba(96,67,18,0.95)" strokeWidth="3" />
+
+                  <line
+                    x1={chart.margin.left}
+                    x2={chart.margin.left}
+                    y1={chart.margin.top}
+                    y2={chart.margin.top + chart.innerHeight}
+                    stroke="rgba(29,26,23,0.24)"
+                    strokeWidth="1.4"
+                  />
+                  <line
+                    x1={chart.margin.left}
+                    x2={chart.margin.left + chart.innerWidth}
+                    y1={chart.margin.top + chart.innerHeight}
+                    y2={chart.margin.top + chart.innerHeight}
+                    stroke="rgba(29,26,23,0.24)"
+                    strokeWidth="1.4"
+                  />
+
+                  <text
+                    x={chart.margin.left + 8}
+                    y={chart.margin.top + 18}
+                    fontSize="12"
+                    fill="var(--muted)"
+                    textAnchor="start"
+                  >
+                    Absolute power
+                  </text>
+                  <text
+                    x={chart.xScale(ELITE_CUTOFF) + 12}
+                    y={chart.margin.top + 24}
+                    fontSize="12"
+                    fill="var(--elite)"
+                    textAnchor="start"
+                  >
+                    AI-owning elite cluster
+                  </text>
+                </svg>
+
+                <div className="axis-note">
+                  <span>Y-axis: Absolute Power</span>
+                  <span>X-axis: Population Percentiles</span>
+                </div>
+              </div>
+
+              <div className="totals">
+                <div className="total-card">
+                  <h3>Physical Power</h3>
+                  <div className="big-number" style={{ color: "var(--blue-deep)" }}>{formatPct(totals.physicalShare)}</div>
+                  <div className="meta">
+                    Share of total power still sitting in bodily resistance and counting-heads power.
+                  </div>
+                </div>
+
+                <div className="total-card">
+                  <h3>Labor Capital</h3>
+                  <div className="big-number" style={{ color: "var(--blue-light)" }}>{formatPct(totals.laborShare)}</div>
+                  <div className="meta">
+                    Share of total power still tied to lifetime human economic utility.
+                  </div>
+                </div>
+
+                <div className="total-card">
+                  <h3>Public Capital</h3>
+                  <div className="big-number" style={{ color: "#3f9a57" }}>{formatPct(totals.publicCapitalShare)}</div>
+                  <div className="meta">
+                    Share of total power sitting in collectively owned AGI capital.
+                  </div>
+                </div>
+
+                <div className="total-card">
+                  <h3>Private Capital</h3>
+                  <div className="big-number" style={{ color: "var(--gold)" }}>{formatPct(totals.capitalShare)}</div>
+                  <div className="meta">
+                    Share of total power still sitting in privately held recursive capital.
+                  </div>
+                </div>
+
+                <div className="total-card">
+                  <h3>UBI Support</h3>
+                  <div className="big-number" style={{ color: "var(--accent)" }}>{formatSupportValue(totals.ubiSupportTotal)}</div>
+                  <div className="meta">
+                    Support flow distributed this tick. It is not counted as durable power in the chart or threshold bar.
+                  </div>
+                </div>
+
+                <div className="total-card">
+                  <h3>Social Contract Support</h3>
+                  <div className="big-number" style={{ color: "var(--muted)" }}>{formatSupportValue(totals.socialContractSupportTotal)}</div>
+                  <div className="meta">
+                    Built-in support flow from residual elite dependence. It is tracked separately from power.
+                  </div>
+                </div>
+              </div>
+
+              <div className="totals-note">
+                The power chart counts only durable power: physical resistance, lifetime labor capital, public AGI capital, and private AGI capital. UBI and the social contract are shown separately as support flows.
+              </div>
+
+              <div className="threshold-panel">
+                <div className="threshold-head">
+                  <div>
+                    <h3>Power Share Threshold</h3>
+                    <p>50% is the effective-power line where one side can outweigh the other.</p>
+                  </div>
+                  <div className={`threshold-status ${noReturnCrossed ? "crossed" : ""}`}>
+                    {noReturnCrossed ? "Elite above 50%" : "Elite below 50%"}
+                  </div>
+                </div>
+
+                <div className="barplot" aria-label="Power share split bar with a 50 percent threshold marker">
+                  <div className="bar-track-wrap">
+                    <div className="track-threshold">
+                      <span>50% point of no return</span>
+                    </div>
+                    <div className="bar-track" style={{ display: "flex", height: 24 }}>
+                      <div
+                        className="bar-fill"
+                        style={{ width: `${totals.commonShare}%`, background: "var(--blue)" }}
+                      ></div>
+                      <div
+                        className="bar-fill"
+                        style={{ width: `${totals.eliteShare}%`, background: "var(--gold)" }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="threshold-head">
+                    <p>Common people: {formatPct(totals.commonShare)}</p>
+                    <p>Private AI owners: {formatPct(totals.eliteShare)}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </section>
+        </main>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
 </body>
 </html>
